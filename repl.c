@@ -6,15 +6,15 @@
 #include "mpc.h"
 #define DEBUG 0
 
+enum LTYPE { LVAL_NUM, LVAL_ERR };
+enum LERROR { LERR_DIV_ZERO, LERR_BAD_OP, LERR_BAD_NUM };
+
 // Lisp Values for evaluation
 typedef struct {
-  int type;
+  enum LTYPE type;
+  enum LERROR err;
   long num;
-  int err;
 } lval;
-
-enum { LVAL_NUM, LVAL_ERR };
-enum { LERR_DIV_ZERO, LERR_BAD_OP, LERR_BAD_NUM };
 
 // helper functions to create num / errors
 lval lval_num(int num) {
