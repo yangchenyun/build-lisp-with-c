@@ -84,7 +84,7 @@ int main(int argc, const char *argv[])
   mpc_result_t r;
 
   /* Print Version and Exit Information */
-  puts("Lispy Version 0.0.1");
+  puts("Lispy Version 0.0.2");
   puts("Press Ctrl+c to Exit\n");
 
   while (1) {
