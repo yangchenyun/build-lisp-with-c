@@ -6,58 +6,107 @@
 #include "mpc.h"
 #define DEBUG 0
 
-void apply_binary_opt(char* opt, long* result) {
-  if (strcmp(opt, "-") == 0) {
-    *result = -*result;
+// Lisp Values for evaluation
+typedef struct {
+  int type;
+  long num;
+  int err;
+} lval;
+
+enum { LVAL_NUM, LVAL_ERR };
+enum { LERR_DIV_ZERO, LERR_BAD_OP, LERR_BAD_NUM };
+
+// helper functions to create num / errors
+lval lval_num(int num) {
+  lval v;
+  v.type = LVAL_NUM;
+  v.num = num;
+  return v;
+};
+
+lval lval_err(int err) {
+  lval v;
+  v.type = LVAL_ERR;
+  v.err = err;
+  return v;
+};
+
+void lval_print(lval v) {
+  switch (v.type) {
+    /* In the case the type is a number print it, then 'break' out of the switch. */
+    case LVAL_NUM: printf("%li\n", v.num); break;
+
+    /* In the case the type is an error */
+    case LVAL_ERR:
+      /* Check What exact type of error it is and print it */
+      if (v.err == LERR_DIV_ZERO) { printf("Error: Division By Zero\n"); }
+      if (v.err == LERR_BAD_OP)   { printf("Error: Invalid Operator\n"); }
+      if (v.err == LERR_BAD_NUM)  { printf("Error: Invalid Number\n"); }
+    break;
   }
 }
 
-void apply_opt(char* opt, long* result, long operand) {
+lval eval_binary_op(char* opt, lval v) {
+  // propgate the result out
+  if (v.type == LVAL_ERR) { return v; }
+  if (strcmp(opt, "-") == 0) { return lval_num(-v.num); }
+  return lval_err(LERR_BAD_OP);
+}
+
+lval eval_op(char* opt, lval x, lval y) {
+  // error propagation
+  if (x.type == LVAL_ERR) { return x; }
+  if (y.type == LVAL_ERR) { return y; }
+
   if (strcmp(opt, "+") == 0 || strcmp(opt, "add") == 0) {
-    *result += operand;
+    return lval_num(x.num + y.num);
   }
   if (strcmp(opt, "-") == 0 || strcmp(opt, "sub") == 0) {
-    *result -= operand;
+    return lval_num(x.num - y.num);
   }
   if (strcmp(opt, "*") == 0 || strcmp(opt, "mul") == 0) {
-    *result *= operand;
+    return lval_num(x.num * y.num);
   }
   if (strcmp(opt, "/") == 0 || strcmp(opt, "div") == 0) {
-    *result /= operand;
+    return y.num == 0 ? lval_err(LERR_DIV_ZERO) : lval_num(x.num / y.num);
   }
   if (strcmp(opt, "%") == 0) {
-    *result %= operand;
+    return lval_num(x.num % y.num);
   }
   if (strcmp(opt, "^") == 0) {
-    *result = pow(*result, operand);
+    return lval_num(pow(x.num, y.num));
   }
   if (strcmp(opt, "min") == 0) {
-    if (*result > operand) { *result = operand; }
+    return x.num > y.num ? lval_num(y.num) : lval_num(x.num);
   }
   if (strcmp(opt, "max") == 0) {
-    if (*result < operand) { *result = operand; }
+    return x.num < y.num ? lval_num(y.num) : lval_num(x.num);
   }
+
+  return lval_err(LERR_BAD_OP);
 };
 
-long eval(mpc_ast_t* t) {
+lval eval(mpc_ast_t* t) {
   // the termination condition
-  if (strstr(t->tag, "number")) { return atoi(t->contents); }
+  if (strstr(t->tag, "number")) {
+    long x = strtol(t->contents, NULL, 10);
+    return errno != ERANGE ? lval_num(x) : lval_err(LERR_BAD_NUM);
+  }
 
   // assumption, t has the structure <operator> <expression> <expression>
   char* opt = t->children[1]->contents;
 
   // store 3rd children as first operand
-  long result = eval(t->children[2]);
+  lval result = eval(t->children[2]);
 
-  if (t->children_num == 4) { // with one operand
-    apply_binary_opt(opt, &result);
-  }
+  // with one operand
+  if (t->children_num == 4) { result = eval_binary_op(opt, result); }
 
   if (t->children_num >= 4) { // with two operands
     int i = 3;
     while (strstr(t->children[i]->tag, "expr")) {
       // apply operation to all tailing expressions
-      apply_opt(opt, &result, eval(t->children[i]));
+      result = eval_op(opt, result, eval(t->children[i]));
       i++;
     }
   }
@@ -92,7 +141,7 @@ int main(int argc, const char *argv[])
     add_history(input);
     if (mpc_parse("<stdin>", input, Prog, &r)) {
       if (DEBUG) { mpc_ast_print(r.output); }
-      printf("%li\n", eval(r.output));
+      lval_print(eval(r.output));
       mpc_ast_delete(r.output);
     } else {
       mpc_err_print(r.error);
