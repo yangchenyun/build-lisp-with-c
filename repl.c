@@ -12,36 +12,38 @@ enum LERROR { LERR_DIV_ZERO, LERR_BAD_OP, LERR_BAD_NUM };
 // Lisp Values for evaluation
 typedef struct {
   enum LTYPE type;
-  enum LERROR err;
-  long num;
+  union {
+    enum LERROR err;
+    long num;
+  } val;
 } lval;
 
 // helper functions to create num / errors
 lval lval_num(int num) {
   lval v;
   v.type = LVAL_NUM;
-  v.num = num;
+  v.val.num = num;
   return v;
 };
 
 lval lval_err(int err) {
   lval v;
   v.type = LVAL_ERR;
-  v.err = err;
+  v.val.err = err;
   return v;
 };
 
 void lval_print(lval v) {
   switch (v.type) {
     /* In the case the type is a number print it, then 'break' out of the switch. */
-    case LVAL_NUM: printf("%li\n", v.num); break;
+    case LVAL_NUM: printf("%li\n", v.val.num); break;
 
     /* In the case the type is an error */
     case LVAL_ERR:
       /* Check What exact type of error it is and print it */
-      if (v.err == LERR_DIV_ZERO) { printf("Error: Division By Zero\n"); }
-      if (v.err == LERR_BAD_OP)   { printf("Error: Invalid Operator\n"); }
-      if (v.err == LERR_BAD_NUM)  { printf("Error: Invalid Number\n"); }
+      if (v.val.err == LERR_DIV_ZERO) { printf("Error: Division By Zero\n"); }
+      if (v.val.err == LERR_BAD_OP)   { printf("Error: Invalid Operator\n"); }
+      if (v.val.err == LERR_BAD_NUM)  { printf("Error: Invalid Number\n"); }
     break;
   }
 }
@@ -49,7 +51,7 @@ void lval_print(lval v) {
 lval eval_binary_op(char* opt, lval v) {
   // propgate the result out
   if (v.type == LVAL_ERR) { return v; }
-  if (strcmp(opt, "-") == 0) { return lval_num(-v.num); }
+  if (strcmp(opt, "-") == 0) { return lval_num(-v.val.num); }
   return lval_err(LERR_BAD_OP);
 }
 
@@ -59,28 +61,28 @@ lval eval_op(char* opt, lval x, lval y) {
   if (y.type == LVAL_ERR) { return y; }
 
   if (strcmp(opt, "+") == 0 || strcmp(opt, "add") == 0) {
-    return lval_num(x.num + y.num);
+    return lval_num(x.val.num + y.val.num);
   }
   if (strcmp(opt, "-") == 0 || strcmp(opt, "sub") == 0) {
-    return lval_num(x.num - y.num);
+    return lval_num(x.val.num - y.val.num);
   }
   if (strcmp(opt, "*") == 0 || strcmp(opt, "mul") == 0) {
-    return lval_num(x.num * y.num);
+    return lval_num(x.val.num * y.val.num);
   }
   if (strcmp(opt, "/") == 0 || strcmp(opt, "div") == 0) {
-    return y.num == 0 ? lval_err(LERR_DIV_ZERO) : lval_num(x.num / y.num);
+    return y.val.num == 0 ? lval_err(LERR_DIV_ZERO) : lval_num(x.val.num / y.val.num);
   }
   if (strcmp(opt, "%") == 0) {
-    return lval_num(x.num % y.num);
+    return lval_num(x.val.num % y.val.num);
   }
   if (strcmp(opt, "^") == 0) {
-    return lval_num(pow(x.num, y.num));
+    return lval_num(pow(x.val.num, y.val.num));
   }
   if (strcmp(opt, "min") == 0) {
-    return x.num > y.num ? lval_num(y.num) : lval_num(x.num);
+    return x.val.num > y.val.num ? lval_num(y.val.num) : lval_num(x.val.num);
   }
   if (strcmp(opt, "max") == 0) {
-    return x.num < y.num ? lval_num(y.num) : lval_num(x.num);
+    return x.val.num < y.val.num ? lval_num(y.val.num) : lval_num(x.val.num);
   }
 
   return lval_err(LERR_BAD_OP);
