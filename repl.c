@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 #include <readline/readline.h>
 #include <readline/history.h>
 #include "mpc.h"
@@ -20,6 +21,15 @@ void apply_opt(char* opt, long* result, long operand) {
   }
   if (strcmp(opt, "%") == 0) {
     *result %= operand;
+  }
+  if (strcmp(opt, "^") == 0) {
+    *result = pow(*result, operand);
+  }
+  if (strcmp(opt, "min") == 0) {
+    if (*result > operand) { *result = operand; }
+  }
+  if (strcmp(opt, "max") == 0) {
+    if (*result < operand) { *result = operand; }
   }
 };
 
@@ -52,7 +62,7 @@ int main(int argc, const char *argv[])
 
   mpca_lang(MPC_LANG_DEFAULT,
       " \
-      operator   : '+' | '-' | '*' | '/' | '%' | \"add\" | \"sub\" | \"mul\" | \"div\"; \
+      operator   : '+' | '-' | '*' | '/' | '%' | '^' | \"add\" | \"sub\" | \"mul\" | \"div\" | \"min\" | \"max\"; \
       expr : <number> | '(' <operator> <expr>+ ')';\
       program    : /^/ <operator> <expr>+ /$/;\
       number     : /-?[0-9]+(\\.[0-9]+)?/; \
