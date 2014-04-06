@@ -6,6 +6,12 @@
 #include "mpc.h"
 #define DEBUG 0
 
+void apply_binary_opt(char* opt, long* result) {
+  if (strcmp(opt, "-") == 0) {
+    *result = -*result;
+  }
+}
+
 void apply_opt(char* opt, long* result, long operand) {
   if (strcmp(opt, "+") == 0 || strcmp(opt, "add") == 0) {
     *result += operand;
@@ -43,11 +49,17 @@ long eval(mpc_ast_t* t) {
   // store 3rd children as first operand
   long result = eval(t->children[2]);
 
-  // apply operation to all tailing expressions
-  int i = 3;
-  while (strstr(t->children[i]->tag, "expr")) {
-    apply_opt(opt, &result, eval(t->children[i]));
-    i++;
+  if (t->children_num == 4) { // with one operand
+    apply_binary_opt(opt, &result);
+  }
+
+  if (t->children_num >= 4) { // with two operands
+    int i = 3;
+    while (strstr(t->children[i]->tag, "expr")) {
+      // apply operation to all tailing expressions
+      apply_opt(opt, &result, eval(t->children[i]));
+      i++;
+    }
   }
 
   return result;
