@@ -16,7 +16,7 @@ int main(int argc, const char *argv[])
       operator   : '+' | '-' | '*' | '/' | '%' | \"add\" | \"sub\" | \"mul\" | \"div\"; \
       expression : <number> | '(' <operator> <expression>+ ')';\
       program    : /^/ <operator> <expression>+ /$/;\
-      number     : /-?[0-9]+(.[0-9]+)?/; \
+      number     : /-?[0-9]+(\\.[0-9]+)?/; \
       ",
       Number, Operator, Expression, Prog);
 
