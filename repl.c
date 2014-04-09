@@ -246,11 +246,21 @@ Lval* buildin_join(Lval* l) {
   return ql;
 }
 
+Lval* buildin_eval(Lval* l) {
+  LASSERT(l, l->count != 1, "Function 'eval' passed too many arguments!");
+  LASSERT(l, l->cell[0]->type != LVAL_QEXPR, "Function 'eval' only accept Qexpr!");
+
+  Lval* ql = lval_take(l, 0);
+  ql->type = LVAL_SEXPR;
+  return lval_eval(ql);
+};
+
 Lval* buildin(Lval* l, char* fn) {
   if (strcmp(fn, "list") == 0) { return buildin_list(l); }
   if (strcmp(fn, "head") == 0) { return buildin_head(l); }
   if (strcmp(fn, "tail") == 0) { return buildin_tail(l); }
   if (strcmp(fn, "join") == 0) { return buildin_join(l); }
+  if (strcmp(fn, "eval") == 0) { return buildin_eval(l); }
   if (strstr("-+*^%/ min max add sub mul div", fn)) {
     return buildin_op(l, fn);
   }
@@ -319,7 +329,7 @@ int main(int argc, const char *argv[])
 
   mpca_lang(MPC_LANG_DEFAULT,
       " \
-      symbol  : '+' | '-' | '*' | '/' | '%' | '^' | \"add\" | \"sub\" | \"mul\" | \"div\" | \"min\" | \"max\" | \"list\" | \"head\" | \"tail\" | \"join\"; \
+      symbol  : '+' | '-' | '*' | '/' | '%' | '^' | \"add\" | \"sub\" | \"mul\" | \"div\" | \"min\" | \"max\" | \"list\" | \"head\" | \"tail\" | \"join\" | \"eval\"; \
       number  : /-?[0-9]+(\\.[0-9]+)?/; \
       expr    : <number> | <symbol> | <sexpr> | <qexpr> ;\
       sexpr   : '(' <expr>* ')';\
