@@ -4,6 +4,7 @@
 #include <assert.h>
 
 enum LTYPE { LVAL_NUM, LVAL_ERR, LVAL_SYM, LVAL_SEXPR, LVAL_QEXPR};
+#define LASSERT(l, cond, err) if (cond) { lval_del(l); return lval_err(err); };
 
 // Lisp Values for evaluation
 typedef struct Lval {

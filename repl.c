@@ -204,19 +204,28 @@ Lval* buildin_list(Lval* l) {
   return ql;
 };
 
-Lval* buildin_head(Lval* ql) {
+Lval* buildin_head(Lval* l) {
+  LASSERT(l, l->count != 1, "Function 'head' passed too many arguments!");
+  LASSERT(l, l->cell[0]->type != LVAL_QEXPR, "Function 'head' only accept Qexpr!");
+  LASSERT(l, l->cell[0]->count == 0, "Function 'head' passed in {}");
+
+  Lval* ql = lval_take(l, 0); // extract the qexpr
   return lval_take(ql, 0);
 };
 
-Lval* buildin_tail(Lval* ql) {
+Lval* buildin_tail(Lval* l) {
+  LASSERT(l, l->count != 1, "Function 'tail' passed too many arguments!");
+  LASSERT(l, l->cell[0]->type != LVAL_QEXPR, "Function 'tail' only accept Qexpr!");
+  LASSERT(l, l->cell[0]->count == 0, "Function 'tail' passed in {}");
+
+  Lval* ql = lval_take(l, 0); // extract the qexpr
   return lval_take(ql, ql->count - 1);
 };
 
 Lval* buildin_op(Lval* l, char* op) {
   if (strcmp(op, "list") == 0) { return buildin_list(l); }
-  // for all qexpr operations extract out the qexp first
-  if (strcmp(op, "head") == 0) { return buildin_head(lval_take(l, 0)); }
-  if (strcmp(op, "tail") == 0) { return buildin_tail(lval_take(l, 0)); }
+  if (strcmp(op, "head") == 0) { return buildin_head(l); }
+  if (strcmp(op, "tail") == 0) { return buildin_tail(l); }
 
   for (int i = 0; i < l->count; i++) {
     if (l->cell[i]->type != LVAL_NUM) {
@@ -278,7 +287,7 @@ int main(int argc, const char *argv[])
 
   mpca_lang(MPC_LANG_DEFAULT,
       " \
-      symbol  : '+' | '-' | '*' | '/' | '%' | '^' | \"add\" | \"sub\" | \"mul\" | \"div\" | \"min\" | \"max\" | \"list\" | \"head\" | \"tail\"; \
+      symbol  : '+' | '-' | '*' | '/' | '%' | '^' | \"add\" | \"sub\" | \"mul\" | \"div\" | \"min\" | \"max\" | \"list\" | \"head\" | \"tail\" | \"join\"; \
       number  : /-?[0-9]+(\\.[0-9]+)?/; \
       expr    : <number> | <symbol> | <sexpr> | <qexpr> ;\
       sexpr   : '(' <expr>* ')';\
