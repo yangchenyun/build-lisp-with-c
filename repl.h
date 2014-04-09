@@ -41,6 +41,16 @@ Lval* lval_take(Lval* v, int i); // take elements and leave out the rest
 
 // Evaluation / Data Transformation
 Lval* buildin_op(Lval* l, char* op);
+// Takes one or more arguments and returns a new Q-Expression
+Lval* buildin_list(Lval* l);
+// Takes a Q-Expression and returns a Q-Expression with only of the first element
+Lval* buildin_head(Lval* l);
+// Takes a Q-Expression and returns a Q-Expression with the first element removed
+Lval* buildin_tail(Lval* l);
+// Takes one or more Q-Expressions and returns a Q-Expression of them conjoined together
+Lval* buildin_join(Lval* a);
+// Takes a Q-Expression and evaluates it as if it were a S-Expression
+Lval* buildin_eval(Lval* l);
 Lval* lval_eval_sexpr(Lval* v);
 Lval* lval_eval(Lval* v);
 
