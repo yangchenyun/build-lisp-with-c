@@ -205,14 +205,18 @@ Lval* buildin_list(Lval* l) {
 };
 
 Lval* buildin_head(Lval* ql) {
-  Lval* nl = lval_pop(ql, 0);
-  lval_del(ql);
-  return nl;
+  return lval_take(ql, 0);
+};
+
+Lval* buildin_tail(Lval* ql) {
+  return lval_take(ql, ql->count - 1);
 };
 
 Lval* buildin_op(Lval* l, char* op) {
   if (strcmp(op, "list") == 0) { return buildin_list(l); }
-  if (strcmp(op, "head") == 0) { return buildin_head(lval_take(l, 0)); } // extract out the qexp first
+  // for all qexpr operations extract out the qexp first
+  if (strcmp(op, "head") == 0) { return buildin_head(lval_take(l, 0)); }
+  if (strcmp(op, "tail") == 0) { return buildin_tail(lval_take(l, 0)); }
 
   for (int i = 0; i < l->count; i++) {
     if (l->cell[i]->type != LVAL_NUM) {
@@ -274,7 +278,7 @@ int main(int argc, const char *argv[])
 
   mpca_lang(MPC_LANG_DEFAULT,
       " \
-      symbol  : '+' | '-' | '*' | '/' | '%' | '^' | \"add\" | \"sub\" | \"mul\" | \"div\" | \"min\" | \"max\" | \"list\" | \"head\"; \
+      symbol  : '+' | '-' | '*' | '/' | '%' | '^' | \"add\" | \"sub\" | \"mul\" | \"div\" | \"min\" | \"max\" | \"list\" | \"head\" | \"tail\"; \
       number  : /-?[0-9]+(\\.[0-9]+)?/; \
       expr    : <number> | <symbol> | <sexpr> | <qexpr> ;\
       sexpr   : '(' <expr>* ')';\
