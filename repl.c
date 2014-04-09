@@ -221,7 +221,8 @@ Lval* buildin_tail(Lval* l) {
   LASSERT(l, l->cell[0]->count == 0, "Function 'tail' passed in {}");
 
   Lval* ql = lval_take(l, 0); // extract the qexpr
-  return lval_take(ql, ql->count - 1);
+  lval_del(lval_pop(ql, 0));
+  return ql;
 };
 
 Lval* buildin_join(Lval* l) {
