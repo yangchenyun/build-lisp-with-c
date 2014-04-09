@@ -33,12 +33,21 @@ Lval* lval_sexp(void) {
   return v;
 }
 
+Lval* lval_qexp(void) {
+  Lval* v = malloc(sizeof(Lval));
+  v->type = LVAL_QEXPR;
+  v->count = 0;
+  v->cell = NULL;
+  return v;
+}
+
 void lval_del(Lval* v) {
   switch (v->type) {
     case LVAL_NUM: break;
     case LVAL_ERR: free(v->err); break;
     case LVAL_SYM: free(v->sym); break;
     case LVAL_SEXPR:
+    case LVAL_QEXPR:
       for (int i = 0; i < v->count; i++) {
         lval_del(v->cell[i]);
       }
@@ -49,7 +58,7 @@ void lval_del(Lval* v) {
   free(v);
 };
 
-void lval_sexpr_print(Lval* v, char open, char close) {
+void lval_expr_print(Lval* v, char open, char close) {
   FILE* out = DEBUG ? stderr : stdout;
 
   fputc(open, out);
@@ -71,7 +80,8 @@ void lval_print(Lval* v) {
     case LVAL_NUM: fprintf(out, "%li", v->num); break;
     case LVAL_ERR: fprintf(out, "ERROR: %s", v->err); break;
     case LVAL_SYM: fprintf(out, "%s", v->sym); break;
-    case LVAL_SEXPR: lval_sexpr_print(v, '(', ')'); break;
+    case LVAL_SEXPR: lval_expr_print(v, '(', ')'); break;
+    case LVAL_QEXPR: lval_expr_print(v, '{', '}'); break;
   }
 }
 
@@ -82,7 +92,7 @@ void lval_println(Lval* v) {
 
 // add x to the sexp
 Lval* lval_add(Lval* v, Lval* x) {
-  assert(v->type == LVAL_SEXPR);
+  assert(v->type == LVAL_SEXPR || v->type == LVAL_QEXPR);
   v->count++;
   v->cell = realloc(v->cell, sizeof(Lval*) * v->count);
   v->cell[v->count - 1] = x;
@@ -103,6 +113,8 @@ Lval* lval_read(mpc_ast_t* t) {
   if (strcmp(t->tag, ">") == 0) { x = lval_sexp(); }
   // sexpr node
   if (strstr(t->tag, "sexpr")) { x = lval_sexp(); }
+  // qexpr node
+  if (strstr(t->tag, "qexpr")) { x = lval_qexp(); }
 
   // add any valid child
   for (int i = 0; i < t->children_num; i++) {
@@ -232,6 +244,7 @@ int main(int argc, const char *argv[])
   mpc_parser_t *Prog  = mpc_new("program");
   mpc_parser_t *Expr = mpc_new("expr");
   mpc_parser_t *Sexpr = mpc_new("sexpr");
+  mpc_parser_t *Qexpr = mpc_new("qexpr");
   mpc_parser_t *Number = mpc_new("number");
   mpc_parser_t *Symbol  = mpc_new("symbol");
 
@@ -239,16 +252,17 @@ int main(int argc, const char *argv[])
       " \
       symbol  : '+' | '-' | '*' | '/' | '%' | '^' | \"add\" | \"sub\" | \"mul\" | \"div\" | \"min\" | \"max\"; \
       number  : /-?[0-9]+(\\.[0-9]+)?/; \
-      expr    : <number> | <symbol> | <sexpr>;\
+      expr    : <number> | <symbol> | <sexpr> | <qexpr> ;\
       sexpr   : '(' <expr>* ')';\
+      qexpr   : '{' <expr>* '}';\
       program : /^/ <expr>* /$/;\
       ",
-      Number, Symbol, Expr, Sexpr, Prog);
+      Number, Symbol, Expr, Sexpr, Qexpr, Prog);
 
   mpc_result_t r;
 
   /* Print Version and Exit Information */
-  puts("Lispy Version 0.0.4");
+  puts("Lispy Version 0.0.5");
   puts("Press Ctrl+c to Exit\n");
 
   while (1) {
@@ -256,7 +270,7 @@ int main(int argc, const char *argv[])
     add_history(input);
     if (mpc_parse("<stdin>", input, Prog, &r)) {
       if (DEBUG) { mpc_ast_print(r.output); }
-      Lval* x = lval_eval(lval_read(r.output));
+      Lval* x = lval_read(r.output);
       lval_println(x);
       lval_del(x);
       mpc_ast_delete(r.output);
@@ -266,6 +280,6 @@ int main(int argc, const char *argv[])
     }
   }
 
-  mpc_cleanup(4, Number, Symbol, Expr, Sexpr, Prog);
+  mpc_cleanup(6, Number, Symbol, Expr, Sexpr, Qexpr, Prog);
   return 0;
 }

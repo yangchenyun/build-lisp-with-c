@@ -6,8 +6,7 @@
 #include <readline/history.h>
 #include "mpc.h"
 
-enum LTYPE { LVAL_NUM, LVAL_ERR, LVAL_SYM, LVAL_SEXPR};
-enum LERROR { LERR_DIV_ZERO, LERR_BAD_OP, LERR_BAD_NUM };
+enum LTYPE { LVAL_NUM, LVAL_ERR, LVAL_SYM, LVAL_SEXPR, LVAL_QEXPR};
 
 // Lisp Values for evaluation
 typedef struct Lval {
@@ -24,7 +23,7 @@ typedef struct Lval {
 } Lval;
 
 void lval_print(Lval* v);
-void lval_sexpr_print(Lval* v, char open, char close);
+void lval_expr_print(Lval* v, char open, char close);
 
 // pop the child at index i
 Lval* lval_pop(Lval* v, int i);
