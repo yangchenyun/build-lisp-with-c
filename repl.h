@@ -5,7 +5,8 @@
 
 enum LTYPE { LVAL_NUM, LVAL_ERR, LVAL_SYM, LVAL_SEXPR, LVAL_QEXPR};
 #define LASSERT(l, cond, err) if (cond) { lval_del(l); return lval_err(err); };
-#define LASSERT_NONEMPTY_L(l) LASSERT(l, l->cell[0]->count == 0, "{} is not allowed!")
+#define LNONEMPTY(l) LASSERT(l, l->cell[0]->count == 0, "{} is not allowed!")
+#define LARGNUM(l, i) LASSERT(l, l->count != i, "Function passed with wrong arguments!");
 
 // Lisp Values for evaluation
 typedef struct Lval {
@@ -43,25 +44,19 @@ Lval* lval_take(Lval* v, int i); // take elements and leave out the rest
 Lval* lval_join(Lval* v, Lval* u);
 Lval* lval_insert(Lval* v, Lval* a, int i);
 
-// Evaluation / Data Transformation
+// buildin functions
 Lval* buildin(Lval* l, char* func);
 Lval* buildin_op(Lval* l, char* op);
-// Takes one or more arguments and returns a new Q-Expression
-Lval* buildin_list(Lval* l);
-// Takes a Q-Expression and returns a Q-Expression with only of the first element
-Lval* buildin_head(Lval* l);
-// Takes a Q-Expression and returns a Q-Expression with the first element removed
-Lval* buildin_tail(Lval* l);
-// Takes one or more Q-Expressions and returns a Q-Expression of them conjoined together
-Lval* buildin_join(Lval* a);
-// Takes a Q-Expression and evaluates it as if it were a S-Expression
-Lval* buildin_eval(Lval* l);
-// Takes a value and a Q-Expression and appends it to the front.
-Lval* buildin_cons(Lval* l);
-// returns the number of elements in a Q-Expression.
-Lval* buildin_len(Lval* l);
-// returns all of a Q-Expression except the final element.
-Lval* buildin_init(Lval* l);
+Lval* buildin_list(Lval* l); // (list 1 2 3 4)   => {1 2 3 4}
+Lval* buildin_head(Lval* l); // (head {1 2 3})   => {1}
+Lval* buildin_tail(Lval* l); // (tail {1 2 3})   => {2 3}
+Lval* buildin_join(Lval* a); // (join {1} {2 3}) => {1 2 3}
+Lval* buildin_eval(Lval* l); // (eval {+ 1 2})   => 3
+Lval* buildin_cons(Lval* l); // (cons 1 {2 3})   => {1, 2, 3}
+Lval* buildin_len(Lval* l);  // (len {1 2 3})    => 3
+Lval* buildin_init(Lval* l); // (init {1 2 3})   => {1 2}
+
+// Evaluation / Data Transformation
 Lval* lval_eval_sexpr(Lval* v);
 Lval* lval_eval(Lval* v);
 

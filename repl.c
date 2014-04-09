@@ -231,8 +231,8 @@ Lval* buildin_list(Lval* l) {
 };
 
 Lval* buildin_head(Lval* l) {
-  LASSERT_NONEMPTY_L(l);
-  LASSERT(l, l->count != 1, "Function 'head' passed too many arguments!");
+  LNONEMPTY(l);
+  LARGNUM(l, 1);
   LASSERT(l, l->cell[0]->type != LVAL_QEXPR, "Function 'head' only accept Qexpr!");
 
   Lval* ql = lval_take(l, 0); // extract the qexpr
@@ -240,8 +240,8 @@ Lval* buildin_head(Lval* l) {
 };
 
 Lval* buildin_tail(Lval* l) {
-  LASSERT_NONEMPTY_L(l);
-  LASSERT(l, l->count != 1, "Function 'tail' passed too many arguments!");
+  LNONEMPTY(l);
+  LARGNUM(l, 1);
   LASSERT(l, l->cell[0]->type != LVAL_QEXPR, "Function 'tail' only accept Qexpr!");
 
   Lval* ql = lval_take(l, 0); // extract the qexpr
@@ -265,8 +265,9 @@ Lval* buildin_join(Lval* l) {
 }
 
 Lval* buildin_cons(Lval* l) {
-  LASSERT(l, l->count != 2, "Function 'cons' passed too many arguments!");
+  LARGNUM(l, 2);
   LASSERT(l, l->cell[1]->type != LVAL_QEXPR, "Function 'cons' could only apply to Qexpr!");
+
   Lval* a = lval_pop(l, 0);
   Lval* ql = lval_pop(l, 0);
   lval_insert(ql, a, 0);
@@ -275,8 +276,8 @@ Lval* buildin_cons(Lval* l) {
 };
 
 Lval* buildin_eval(Lval* l) {
-  LASSERT_NONEMPTY_L(l);
-  LASSERT(l, l->count != 1, "Function 'eval' passed too many arguments!");
+  LNONEMPTY(l);
+  LARGNUM(l, 1);
 
   Lval* ql = lval_take(l, 0);
   ql->type = LVAL_SEXPR;
@@ -284,8 +285,9 @@ Lval* buildin_eval(Lval* l) {
 };
 
 Lval* buildin_len(Lval* l) {
-  LASSERT(l, l->count != 1, "Function 'eval' passed too many arguments!");
+  LARGNUM(l, 1);
   LASSERT(l, l->cell[0]->type != LVAL_QEXPR, "Function 'cons' could only apply to Qexpr!");
+
   Lval* ql = lval_take(l, 0);
   int len = ql->count;
   lval_del(ql);
@@ -293,8 +295,8 @@ Lval* buildin_len(Lval* l) {
 };
 
 Lval* buildin_init(Lval* l) {
-  LASSERT_NONEMPTY_L(l);
-  LASSERT(l, l->count != 1, "Function 'init' passed too many arguments!");
+  LNONEMPTY(l);
+  LARGNUM(l, 1);
   LASSERT(l, l->cell[0]->type != LVAL_QEXPR, "Function 'init' only accept Qexpr!");
 
   Lval* ql = lval_take(l, 0); // extract the qexpr
