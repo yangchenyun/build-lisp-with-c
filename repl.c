@@ -157,7 +157,7 @@ Lval* lval_eval_sexpr(Lval* v) {
   }
 
   // apply the operation for the rest of list
-  Lval* result = buildin_op(v, f->sym);
+  Lval* result = buildin(v, f->sym);
   lval_del(f);
   return result;
 };
@@ -222,11 +222,18 @@ Lval* buildin_tail(Lval* l) {
   return lval_take(ql, ql->count - 1);
 };
 
-Lval* buildin_op(Lval* l, char* op) {
-  if (strcmp(op, "list") == 0) { return buildin_list(l); }
-  if (strcmp(op, "head") == 0) { return buildin_head(l); }
-  if (strcmp(op, "tail") == 0) { return buildin_tail(l); }
+Lval* buildin(Lval* l, char* fn) {
+  if (strcmp(fn, "list") == 0) { return buildin_list(l); }
+  if (strcmp(fn, "head") == 0) { return buildin_head(l); }
+  if (strcmp(fn, "tail") == 0) { return buildin_tail(l); }
+  if (strstr("-+*^%/ min max add sub mul div", fn)) {
+    return buildin_op(l, fn);
+  }
+  lval_del(l);
+  return lval_err("Unknown functions!");
+};
 
+Lval* buildin_op(Lval* l, char* op) {
   for (int i = 0; i < l->count; i++) {
     if (l->cell[i]->type != LVAL_NUM) {
       lval_del(l);

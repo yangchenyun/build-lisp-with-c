@@ -41,6 +41,7 @@ Lval* lval_pop(Lval* v, int i); // pop the child at index i
 Lval* lval_take(Lval* v, int i); // take elements and leave out the rest
 
 // Evaluation / Data Transformation
+Lval* buildin(Lval* l, char* func);
 Lval* buildin_op(Lval* l, char* op);
 // Takes one or more arguments and returns a new Q-Expression
 Lval* buildin_list(Lval* l);
