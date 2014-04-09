@@ -202,15 +202,8 @@ Lval* lval_join(Lval* v, Lval* u) {
 };
 
 Lval* buildin_list(Lval* l) {
-  Lval* ql = lval_qexp();
-
-  while (l->count != 0) {
-    Lval* x = lval_pop(l, 0);
-    lval_add(ql, x);
-  }
-
-  lval_del(l);
-  return ql;
+  l->type = LVAL_QEXPR;
+  return l;
 };
 
 Lval* buildin_head(Lval* l) {
