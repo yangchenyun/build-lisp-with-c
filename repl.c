@@ -192,6 +192,15 @@ Lval* lval_pop(Lval* v, int i) {
   return x;
 };
 
+Lval* lval_join(Lval* v, Lval* u) {
+  while(u->count != 0) {
+    lval_add(v, lval_pop(u, 0));
+  }
+
+  lval_del(u);
+  return v;
+};
+
 Lval* buildin_list(Lval* l) {
   Lval* ql = lval_qexp();
 
@@ -222,10 +231,26 @@ Lval* buildin_tail(Lval* l) {
   return lval_take(ql, ql->count - 1);
 };
 
+Lval* buildin_join(Lval* l) {
+  for (int i = 0; i < l->count; i++) {
+    LASSERT(l, l->cell[i]->type != LVAL_QEXPR, "Function 'join' only accept Qexprs!");
+  }
+
+  Lval* ql = lval_pop(l, 0);
+
+  while(l->count != 0) {
+    lval_join(ql, lval_pop(l, 0));
+  }
+
+  lval_del(l);
+  return ql;
+}
+
 Lval* buildin(Lval* l, char* fn) {
   if (strcmp(fn, "list") == 0) { return buildin_list(l); }
   if (strcmp(fn, "head") == 0) { return buildin_head(l); }
   if (strcmp(fn, "tail") == 0) { return buildin_tail(l); }
+  if (strcmp(fn, "join") == 0) { return buildin_join(l); }
   if (strstr("-+*^%/ min max add sub mul div", fn)) {
     return buildin_op(l, fn);
   }

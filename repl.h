@@ -39,6 +39,7 @@ void lval_println(Lval* v);
 Lval* lval_add(Lval* v, Lval* x);
 Lval* lval_pop(Lval* v, int i); // pop the child at index i
 Lval* lval_take(Lval* v, int i); // take elements and leave out the rest
+Lval* lval_join(Lval* v, Lval* u);
 
 // Evaluation / Data Transformation
 Lval* buildin(Lval* l, char* func);
