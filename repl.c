@@ -203,8 +203,16 @@ Lval* buildin_list(Lval* l) {
   lval_del(l);
   return ql;
 };
+
+Lval* buildin_head(Lval* ql) {
+  Lval* nl = lval_pop(ql, 0);
+  lval_del(ql);
+  return nl;
+};
+
 Lval* buildin_op(Lval* l, char* op) {
   if (strcmp(op, "list") == 0) { return buildin_list(l); }
+  if (strcmp(op, "head") == 0) { return buildin_head(lval_take(l, 0)); } // extract out the qexp first
 
   for (int i = 0; i < l->count; i++) {
     if (l->cell[i]->type != LVAL_NUM) {
@@ -287,8 +295,6 @@ int main(int argc, const char *argv[])
     if (mpc_parse("<stdin>", input, Prog, &r)) {
       if (DEBUG) { mpc_ast_print(r.output); }
       Lval* x = lval_eval(lval_read(r.output));
-      if (DEBUG) { mpc_ast_print(r.output); }
-      Lval* x = lval_read(r.output);
       lval_println(x);
       lval_del(x);
       mpc_ast_delete(r.output);
