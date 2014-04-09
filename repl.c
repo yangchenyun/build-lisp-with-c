@@ -1,3 +1,6 @@
+#include <readline/readline.h>
+#include <readline/history.h>
+#include "mpc.h"
 #include "repl.h"
 #define DEBUG 0
 
