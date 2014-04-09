@@ -93,7 +93,7 @@ void lval_println(Lval* v) {
   putchar('\n');
 }
 
-// add x to the sexp
+// add x to the sexp or qexp
 Lval* lval_add(Lval* v, Lval* x) {
   assert(v->type == LVAL_SEXPR || v->type == LVAL_QEXPR);
   v->count++;
@@ -192,7 +192,20 @@ Lval* lval_pop(Lval* v, int i) {
   return x;
 };
 
+Lval* buildin_list(Lval* l) {
+  Lval* ql = lval_qexp();
+
+  while (l->count != 0) {
+    Lval* x = lval_pop(l, 0);
+    lval_add(ql, x);
+  }
+
+  lval_del(l);
+  return ql;
+};
 Lval* buildin_op(Lval* l, char* op) {
+  if (strcmp(op, "list") == 0) { return buildin_list(l); }
+
   for (int i = 0; i < l->count; i++) {
     if (l->cell[i]->type != LVAL_NUM) {
       lval_del(l);
@@ -253,7 +266,7 @@ int main(int argc, const char *argv[])
 
   mpca_lang(MPC_LANG_DEFAULT,
       " \
-      symbol  : '+' | '-' | '*' | '/' | '%' | '^' | \"add\" | \"sub\" | \"mul\" | \"div\" | \"min\" | \"max\"; \
+      symbol  : '+' | '-' | '*' | '/' | '%' | '^' | \"add\" | \"sub\" | \"mul\" | \"div\" | \"min\" | \"max\" | \"list\" | \"head\"; \
       number  : /-?[0-9]+(\\.[0-9]+)?/; \
       expr    : <number> | <symbol> | <sexpr> | <qexpr> ;\
       sexpr   : '(' <expr>* ')';\
@@ -272,6 +285,8 @@ int main(int argc, const char *argv[])
     char *input = readline("lispy> ");
     add_history(input);
     if (mpc_parse("<stdin>", input, Prog, &r)) {
+      if (DEBUG) { mpc_ast_print(r.output); }
+      Lval* x = lval_eval(lval_read(r.output));
       if (DEBUG) { mpc_ast_print(r.output); }
       Lval* x = lval_read(r.output);
       lval_println(x);
