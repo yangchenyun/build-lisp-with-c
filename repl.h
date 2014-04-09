@@ -5,6 +5,7 @@
 
 enum LTYPE { LVAL_NUM, LVAL_ERR, LVAL_SYM, LVAL_SEXPR, LVAL_QEXPR};
 #define LASSERT(l, cond, err) if (cond) { lval_del(l); return lval_err(err); };
+#define LASSERT_NONEMPTY_L(l) LASSERT(l, l->cell[0]->count == 0, "{} is not allowed!")
 
 // Lisp Values for evaluation
 typedef struct Lval {

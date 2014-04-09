@@ -207,18 +207,18 @@ Lval* buildin_list(Lval* l) {
 };
 
 Lval* buildin_head(Lval* l) {
+  LASSERT_NONEMPTY_L(l);
   LASSERT(l, l->count != 1, "Function 'head' passed too many arguments!");
   LASSERT(l, l->cell[0]->type != LVAL_QEXPR, "Function 'head' only accept Qexpr!");
-  LASSERT(l, l->cell[0]->count == 0, "Function 'head' passed in {}");
 
   Lval* ql = lval_take(l, 0); // extract the qexpr
   return lval_take(ql, 0);
 };
 
 Lval* buildin_tail(Lval* l) {
+  LASSERT_NONEMPTY_L(l);
   LASSERT(l, l->count != 1, "Function 'tail' passed too many arguments!");
   LASSERT(l, l->cell[0]->type != LVAL_QEXPR, "Function 'tail' only accept Qexpr!");
-  LASSERT(l, l->cell[0]->count == 0, "Function 'tail' passed in {}");
 
   Lval* ql = lval_take(l, 0); // extract the qexpr
   lval_del(lval_pop(ql, 0));
@@ -241,8 +241,8 @@ Lval* buildin_join(Lval* l) {
 }
 
 Lval* buildin_eval(Lval* l) {
+  LASSERT_NONEMPTY_L(l);
   LASSERT(l, l->count != 1, "Function 'eval' passed too many arguments!");
-  LASSERT(l, l->cell[0]->type != LVAL_QEXPR, "Function 'eval' only accept Qexpr!");
 
   Lval* ql = lval_take(l, 0);
   ql->type = LVAL_SEXPR;
