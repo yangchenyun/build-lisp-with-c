@@ -283,6 +283,25 @@ Lval* buildin_eval(Lval* l) {
   return lval_eval(ql);
 };
 
+Lval* buildin_len(Lval* l) {
+  LASSERT(l, l->count != 1, "Function 'eval' passed too many arguments!");
+  LASSERT(l, l->cell[0]->type != LVAL_QEXPR, "Function 'cons' could only apply to Qexpr!");
+  Lval* ql = lval_take(l, 0);
+  int len = ql->count;
+  lval_del(ql);
+  return lval_num(len);
+};
+
+Lval* buildin_init(Lval* l) {
+  LASSERT_NONEMPTY_L(l);
+  LASSERT(l, l->count != 1, "Function 'init' passed too many arguments!");
+  LASSERT(l, l->cell[0]->type != LVAL_QEXPR, "Function 'init' only accept Qexpr!");
+
+  Lval* ql = lval_take(l, 0); // extract the qexpr
+  lval_del(lval_pop(ql, ql->count - 1));
+  return ql;
+};
+
 Lval* buildin(Lval* l, char* fn) {
   if (strcmp(fn, "list") == 0) { return buildin_list(l); }
   if (strcmp(fn, "head") == 0) { return buildin_head(l); }
@@ -290,6 +309,8 @@ Lval* buildin(Lval* l, char* fn) {
   if (strcmp(fn, "join") == 0) { return buildin_join(l); }
   if (strcmp(fn, "cons") == 0) { return buildin_cons(l); }
   if (strcmp(fn, "eval") == 0) { return buildin_eval(l); }
+  if (strcmp(fn, "len") == 0) { return buildin_len(l); }
+  if (strcmp(fn, "init") == 0) { return buildin_init(l); }
   if (strstr("-+*^%/ min max add sub mul div", fn)) {
     return buildin_op(l, fn);
   }
@@ -360,7 +381,7 @@ int main(int argc, const char *argv[])
       " \
       symbol  : '+' | '-' | '*' | '/' | '%' | '^' | \
       \"add\" | \"sub\" | \"mul\" | \"div\" | \"min\" | \"max\" | \
-      \"list\" | \"head\" | \"tail\" | \"join\" | \"eval\" | \"cons\"; \
+      \"list\" | \"head\" | \"tail\" | \"join\" | \"eval\" | \"cons\" | \"len\" | \"init\"; \
       number  : /-?[0-9]+(\\.[0-9]+)?/; \
       expr    : <number> | <symbol> | <sexpr> | <qexpr> ;\
       sexpr   : '(' <expr>* ')';\

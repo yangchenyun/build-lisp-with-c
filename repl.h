@@ -57,7 +57,11 @@ Lval* buildin_join(Lval* a);
 // Takes a Q-Expression and evaluates it as if it were a S-Expression
 Lval* buildin_eval(Lval* l);
 // Takes a value and a Q-Expression and appends it to the front.
-Lval* buildin_cons(Lval* a);
+Lval* buildin_cons(Lval* l);
+// returns the number of elements in a Q-Expression.
+Lval* buildin_len(Lval* l);
+// returns all of a Q-Expression except the final element.
+Lval* buildin_init(Lval* l);
 Lval* lval_eval_sexpr(Lval* v);
 Lval* lval_eval(Lval* v);
 
