@@ -192,6 +192,30 @@ Lval* lval_pop(Lval* v, int i) {
   return x;
 };
 
+// insert the child at index i
+Lval* lval_insert(Lval* v, Lval* a, int i) {
+  assert(v->type == LVAL_SEXPR || v->type == LVAL_QEXPR);
+  v->count++;
+  v->cell = realloc(v->cell, sizeof(Lval*) * v->count);
+  // move for the position of new element
+  memmove(&v->cell[i + 1], &v->cell[i], sizeof(Lval*) * (v->count - i - 1));
+
+  v->cell[i] = a;
+  return v;
+
+  // hold that variable
+  Lval* x = v->cell[i];
+
+  // shift the after array over
+  memmove(&v->cell[i], &v->cell[i + 1], sizeof(Lval*) * (v->count - i - 1));
+
+  // reduce the count
+  v->count--;
+  v->cell = realloc(v->cell, sizeof(Lval*) * (v->count));
+
+  return x;
+};
+
 Lval* lval_join(Lval* v, Lval* u) {
   while(u->count != 0) {
     lval_add(v, lval_pop(u, 0));
@@ -240,6 +264,16 @@ Lval* buildin_join(Lval* l) {
   return ql;
 }
 
+Lval* buildin_cons(Lval* l) {
+  LASSERT(l, l->count != 2, "Function 'cons' passed too many arguments!");
+  LASSERT(l, l->cell[1]->type != LVAL_QEXPR, "Function 'cons' could only apply to Qexpr!");
+  Lval* a = lval_pop(l, 0);
+  Lval* ql = lval_pop(l, 0);
+  lval_insert(ql, a, 0);
+  lval_del(l);
+  return ql;
+};
+
 Lval* buildin_eval(Lval* l) {
   LASSERT_NONEMPTY_L(l);
   LASSERT(l, l->count != 1, "Function 'eval' passed too many arguments!");
@@ -254,6 +288,7 @@ Lval* buildin(Lval* l, char* fn) {
   if (strcmp(fn, "head") == 0) { return buildin_head(l); }
   if (strcmp(fn, "tail") == 0) { return buildin_tail(l); }
   if (strcmp(fn, "join") == 0) { return buildin_join(l); }
+  if (strcmp(fn, "cons") == 0) { return buildin_cons(l); }
   if (strcmp(fn, "eval") == 0) { return buildin_eval(l); }
   if (strstr("-+*^%/ min max add sub mul div", fn)) {
     return buildin_op(l, fn);
@@ -323,7 +358,9 @@ int main(int argc, const char *argv[])
 
   mpca_lang(MPC_LANG_DEFAULT,
       " \
-      symbol  : '+' | '-' | '*' | '/' | '%' | '^' | \"add\" | \"sub\" | \"mul\" | \"div\" | \"min\" | \"max\" | \"list\" | \"head\" | \"tail\" | \"join\" | \"eval\"; \
+      symbol  : '+' | '-' | '*' | '/' | '%' | '^' | \
+      \"add\" | \"sub\" | \"mul\" | \"div\" | \"min\" | \"max\" | \
+      \"list\" | \"head\" | \"tail\" | \"join\" | \"eval\" | \"cons\"; \
       number  : /-?[0-9]+(\\.[0-9]+)?/; \
       expr    : <number> | <symbol> | <sexpr> | <qexpr> ;\
       sexpr   : '(' <expr>* ')';\

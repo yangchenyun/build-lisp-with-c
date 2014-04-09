@@ -41,6 +41,7 @@ Lval* lval_add(Lval* v, Lval* x);
 Lval* lval_pop(Lval* v, int i); // pop the child at index i
 Lval* lval_take(Lval* v, int i); // take elements and leave out the rest
 Lval* lval_join(Lval* v, Lval* u);
+Lval* lval_insert(Lval* v, Lval* a, int i);
 
 // Evaluation / Data Transformation
 Lval* buildin(Lval* l, char* func);
@@ -55,6 +56,8 @@ Lval* buildin_tail(Lval* l);
 Lval* buildin_join(Lval* a);
 // Takes a Q-Expression and evaluates it as if it were a S-Expression
 Lval* buildin_eval(Lval* l);
+// Takes a value and a Q-Expression and appends it to the front.
+Lval* buildin_cons(Lval* a);
 Lval* lval_eval_sexpr(Lval* v);
 Lval* lval_eval(Lval* v);
 
