@@ -508,12 +508,15 @@ int main(int argc, const char *argv[])
   puts("Lispy Version 0.0.5");
   puts("Press Ctrl+c to Exit\n");
 
+  Lenv* e = lenv_new();
+  lenv_init_buildins(e);
+
   while (1) {
     char *input = readline("lispy> ");
     add_history(input);
     if (mpc_parse("<stdin>", input, Prog, &r)) {
       if (DEBUG) { mpc_ast_print(r.output); }
-      Lval* x = lval_eval(lval_read(r.output));
+      Lval* x = lval_eval(e, lval_read(r.output));
       lval_println(x);
       lval_del(x);
       mpc_ast_delete(r.output);
