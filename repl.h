@@ -4,9 +4,12 @@
 #include <assert.h>
 
 enum LTYPE { LVAL_NUM, LVAL_ERR, LVAL_SYM, LVAL_SEXPR, LVAL_QEXPR, LVAL_FUN};
-#define LASSERT(l, cond, err) if (cond) { lval_del(l); return lval_err(err); };
-#define LNONEMPTY(l) LASSERT(l, l->cell[0]->count == 0, "{} is not allowed!")
-#define LARGNUM(l, i) LASSERT(l, l->count != i, "Function passed with wrong arguments!");
+#define LASSERT(l, cond, fmt, ...) if (!(cond)) { \
+    Lval* err = lval_err(fmt, ##__VA_ARGS__); \
+    lval_del(l); \
+    return err; };
+#define LNONEMPTY(l) LASSERT(l, l->cell[0]->count != 0, "{} is not allowed!")
+#define LARGNUM(l, i) LASSERT(l, l->count == i, "Function passed with wrong arguments!");
 
 typedef struct Lval Lval;
 typedef struct Lenv Lenv;
