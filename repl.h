@@ -10,6 +10,7 @@ enum LTYPE { LVAL_NUM, LVAL_ERR, LVAL_SYM, LVAL_SEXPR, LVAL_QEXPR, LVAL_FUN};
     return err; };
 #define LNONEMPTY(l) LASSERT(l, l->cell[0]->count != 0, "{} is not allowed!")
 #define LARGNUM(l, i) LASSERT(l, l->count == i, "Function passed with wrong arguments. Expect %d, Got %d", i, l->count);
+#define LISTYPE(l, type, expect) LASSERT(l, type == expect, "Incorrect type passed in. Expect %s, Got %s", ltype_name(expect), ltype_name(type));
 
 char* ltype_name(int t);
 

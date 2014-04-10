@@ -373,15 +373,12 @@ void lenv_init_buildins(Lenv* e) {
 }
 
 Lval* buildin_def(Lenv* e, Lval* l) {
-  LASSERT(l, l->cell[0]->type == LVAL_QEXPR,
-      "Function 'def' passed in incorrect type at argument 0. Got %s, Expect %s.",
-      ltype_name(l->cell[0]->type), ltype_name(LVAL_QEXPR));
+  LISTYPE(l, l->cell[0]->type, LVAL_QEXPR);
+
   Lval* syms = l->cell[0];
 
   for (int i = 0; i < syms->count; i++) {
-    LASSERT(l, syms->cell[i]->type == LVAL_SYM,
-        "Function 'def' passed in incorrect type. Got %s, Expect %s",
-        ltype_name(syms->cell[i]->type), ltype_name(LVAL_SYM));
+    LISTYPE(l, syms->cell[i]->type, LVAL_SYM);
   }
 
   LASSERT(l, syms->count == l->count - 1,
@@ -402,7 +399,7 @@ Lval* buildin_list(Lenv* e, Lval* l) {
 Lval* buildin_head(Lenv* e, Lval* l) {
   LNONEMPTY(l);
   LARGNUM(l, 1);
-  LASSERT(l, l->cell[0]->type == LVAL_QEXPR, "Function 'head' only accept Qexpr, Got %s", ltype_name(l->cell[0]->type));
+  LISTYPE(l, l->cell[0]->type, LVAL_QEXPR);
 
   Lval* ql = lval_take(l, 0); // extract the qexpr
   while (ql->count > 1) { lval_del(lval_pop(ql, 1)); }
@@ -412,7 +409,7 @@ Lval* buildin_head(Lenv* e, Lval* l) {
 Lval* buildin_tail(Lenv* e, Lval* l) {
   LNONEMPTY(l);
   LARGNUM(l, 1);
-  LASSERT(l, l->cell[0]->type == LVAL_QEXPR, "Function 'tail' only accept Qexpr, Got %s", ltype_name(l->cell[0]->type));
+  LISTYPE(l, l->cell[0]->type, LVAL_QEXPR);
 
   Lval* ql = lval_take(l, 0); // extract the qexpr
   lval_del(lval_pop(ql, 0));
@@ -421,8 +418,7 @@ Lval* buildin_tail(Lenv* e, Lval* l) {
 
 Lval* buildin_join(Lenv* e, Lval* l) {
   for (int i = 0; i < l->count; i++) {
-    LASSERT(l, l->cell[i]->type == LVAL_QEXPR,
-        "Function 'tail' only accept Qexprs as arguments, Got %s at %d", ltype_name(l->cell[i]->type), i);
+    LISTYPE(l, l->cell[i]->type, LVAL_QEXPR);
   }
 
   Lval* ql = lval_pop(l, 0);
@@ -437,8 +433,7 @@ Lval* buildin_join(Lenv* e, Lval* l) {
 
 Lval* buildin_cons(Lenv* e, Lval* l) {
   LARGNUM(l, 2);
-  LASSERT(l, l->cell[1]->type == LVAL_QEXPR,
-      "Function 'cons' could only apply to Qexpr. Got %s", ltype_name(l->cell[1]->type));
+  LISTYPE(l, l->cell[1]->type, LVAL_QEXPR);
 
   Lval* a = lval_pop(l, 0);
   Lval* ql = lval_pop(l, 0);
@@ -458,7 +453,7 @@ Lval* buildin_eval(Lenv* e, Lval* l) {
 
 Lval* buildin_len(Lenv* e, Lval* l) {
   LARGNUM(l, 1);
-  LASSERT(l, l->cell[0]->type == LVAL_QEXPR, "Function 'cons' could only apply to Qexpr!");
+  LISTYPE(l, l->cell[0]->type, LVAL_QEXPR);
 
   Lval* ql = lval_take(l, 0);
   int len = ql->count;
@@ -469,7 +464,7 @@ Lval* buildin_len(Lenv* e, Lval* l) {
 Lval* buildin_init(Lenv* e, Lval* l) {
   LNONEMPTY(l);
   LARGNUM(l, 1);
-  LASSERT(l, l->cell[0]->type == LVAL_QEXPR, "Function 'init' only accept Qexpr!");
+  LISTYPE(l, l->cell[0]->type, LVAL_QEXPR);
 
   Lval* ql = lval_take(l, 0); // extract the qexpr
   lval_del(lval_pop(ql, ql->count - 1));
