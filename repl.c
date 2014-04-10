@@ -323,10 +323,10 @@ bool lenv_put(Lenv* e, Lval* k, Lval* v, bool status) {
   // for symbol exists in the env
   for (int i = 0; i < e->count; i++) {
     if (strcmp(k->sym, e->syms[i]) == 0) {
-      if (e->status[i]) { return 0; } // freeze variables
+      if (e->status[i]) { return ERR_BUILDIN; }
       lval_del(e->vals[i]);
       e->vals[i] = lval_copy(v);
-      return 1;
+      return 0;
     }
   }
 
@@ -341,7 +341,7 @@ bool lenv_put(Lenv* e, Lval* k, Lval* v, bool status) {
   e->vals[e->count - 1] = lval_copy(v);
   strcpy(e->syms[e->count - 1], k->sym);
 
-  return 1;
+  return 0;
 };
 
 void lenv_add_buildin(Lenv* e, char* name, Lbuildin func) {
@@ -394,7 +394,7 @@ Lval* buildin_def(Lenv* e, Lval* l) {
       syms->count, l->count - 1);
 
   for (int i = 0; i < syms->count; i++) {
-    if (!lenv_put(e, syms->cell[i], l->cell[i + 1], false)) {
+    if (lenv_put(e, syms->cell[i], l->cell[i + 1], false) == ERR_BUILDIN) {
       return lval_err("symbol declaration failed, %s names are taken", syms->cell[i]->sym);
     }
   }
