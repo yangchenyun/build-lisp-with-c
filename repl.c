@@ -334,11 +334,11 @@ bool lenv_put(Lenv* e, Lval* k, Lval* v, bool status) {
   e->count++;
   e->syms = realloc(e->syms, sizeof(char*) * e->count);
   e->vals = realloc(e->vals, sizeof(Lval*) * e->count);
-  e->status = realloc(e->vals, sizeof(bool*) * e->count);
+  e->status = realloc(e->status, sizeof(bool*) * e->count);
 
   e->status[e->count - 1] = status;
-  e->syms[e->count - 1] = malloc(strlen(k->sym) + 1);
   e->vals[e->count - 1] = lval_copy(v);
+  e->syms[e->count - 1] = malloc(strlen(k->sym) + 1);
   strcpy(e->syms[e->count - 1], k->sym);
 
   return 0;
@@ -403,9 +403,10 @@ Lval* buildin_def(Lenv* e, Lval* l) {
 };
 
 Lval* buildin_exit(Lenv* e, Lval* l) {
-  exit(EXIT_SUCCESS);
-  return lval_sexp();
+  LISTYPE(l, l->cell[0]->type, LVAL_NUM);
+  exit(l->cell[0]->num);
 };
+
 Lval* buildin_list(Lenv* e, Lval* l) {
   l->type = LVAL_QEXPR;
   return l;
