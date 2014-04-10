@@ -29,7 +29,7 @@ struct Lval {
 
 // Construction methods
 Lval* lval_num(int num);
-Lval* lval_err(char* m);
+Lval* lval_err(char* fmt, ...);
 Lval* lval_sym(char* s);
 Lval* lval_sexp(void);
 Lval* lval_qexp(void);

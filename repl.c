@@ -12,11 +12,17 @@ Lval* lval_num(int num) {
   return v;
 };
 
-Lval* lval_err(char* m) {
+Lval* lval_err(char* fmt, ...) {
   Lval* v = malloc(sizeof(Lval));
   v->type = LVAL_ERR;
-  v->err = malloc(strlen(m) + 1);
-  strcpy(v->err, m);
+
+  va_list va;
+  va_start(va, fmt);
+  v->err = malloc(512);
+  vsnprintf(v->err, 511, fmt, va);
+  v->err = realloc(v->err, strlen(v->err) + 1);
+  va_end(va);
+
   return v;
 };
 
@@ -295,7 +301,7 @@ Lval* lenv_get(Lenv* e, Lval* k) {
     }
   }
 
-  return lval_err("symbol not found!");
+  return lval_err("unbound symbol %s", k->sym);
 };
 
 void lenv_put(Lenv* e, Lval* k, Lval* v) {
