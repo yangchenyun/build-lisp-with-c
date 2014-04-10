@@ -35,6 +35,7 @@ Lval* lval_sym(char* s);
 Lval* lval_sexp(void);
 Lval* lval_qexp(void);
 Lval* lval_fun(Lbuildin func);
+Lval* lval_copy(Lval* l);
 
 // Destruction methods
 void lval_del(Lval* v);

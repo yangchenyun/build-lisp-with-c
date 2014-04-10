@@ -51,6 +51,36 @@ Lval* lval_fun(Lbuildin func) {
   return v;
 };
 
+Lval* lval_copy(Lval* l) {
+  Lval* v = malloc(sizeof(Lval));
+  v->type = l->type;
+
+  switch (v->type) {
+    case LVAL_NUM:
+      v->num = l->num;
+      break;
+    case LVAL_FUN:
+      v->fun = l->fun;
+      break;
+    case LVAL_ERR:
+      v->err = malloc(strlen(l->err) + 1); strcpy(v->err, l->err);
+      break;
+    case LVAL_SYM:
+      v->err = malloc(strlen(l->sym) + 1); strcpy(v->sym, l->sym);
+      break;
+    case LVAL_SEXPR:
+    case LVAL_QEXPR:
+      v->count = l->count;
+      v->cell = malloc(sizeof(Lval*) * l->count);
+      for (int i = 0; i < v->count; i++) {
+        v->cell[i] = lval_copy(l->cell[i]);
+      }
+      break;
+  };
+
+  return v;
+};
+
 void lval_del(Lval* v) {
   switch (v->type) {
     case LVAL_NUM:
