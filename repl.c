@@ -376,7 +376,8 @@ void lenv_init_buildins(Lenv* e) {
   lenv_add_buildin(e, "%", buildin_mod);
 
   /* Variable Functions */
-  lenv_add_buildin(e, "def",  buildin_def);
+  lenv_add_buildin(e, "def", buildin_def);
+  lenv_add_buildin(e, "exit", buildin_exit);
 }
 
 Lval* buildin_def(Lenv* e, Lval* l) {
@@ -398,6 +399,11 @@ Lval* buildin_def(Lenv* e, Lval* l) {
     }
   }
 
+  return lval_sexp();
+};
+
+Lval* buildin_exit(Lenv* e, Lval* l) {
+  exit(EXIT_SUCCESS);
   return lval_sexp();
 };
 Lval* buildin_list(Lenv* e, Lval* l) {
