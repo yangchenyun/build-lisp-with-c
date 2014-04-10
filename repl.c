@@ -291,6 +291,7 @@ Lenv* lenv_new(void) {
   e->count = 0;
   e->syms = NULL;
   e->vals = NULL;
+  e->status = NULL;
   return e;
 };
 
@@ -301,6 +302,7 @@ void lenv_del(Lenv* e) {
   }
 
   free(e->syms);
+  free(e->status);
   free(e->vals);
   free(e);
 };
@@ -315,15 +317,16 @@ Lval* lenv_get(Lenv* e, Lval* k) {
   return lval_err("unbound symbol %s", k->sym);
 };
 
-void lenv_put(Lenv* e, Lval* k, Lval* v) {
+bool lenv_put(Lenv* e, Lval* k, Lval* v, bool status) {
   assert(k->type == LVAL_SYM);
 
   // for symbol exists in the env
   for (int i = 0; i < e->count; i++) {
     if (strcmp(k->sym, e->syms[i]) == 0) {
+      if (e->status[i]) { return 0; } // freeze variables
       lval_del(e->vals[i]);
       e->vals[i] = lval_copy(v);
-      return;
+      return 1;
     }
   }
 
@@ -331,16 +334,20 @@ void lenv_put(Lenv* e, Lval* k, Lval* v) {
   e->count++;
   e->syms = realloc(e->syms, sizeof(char*) * e->count);
   e->vals = realloc(e->vals, sizeof(Lval*) * e->count);
+  e->status = realloc(e->vals, sizeof(bool*) * e->count);
 
+  e->status[e->count - 1] = status;
   e->syms[e->count - 1] = malloc(strlen(k->sym) + 1);
   e->vals[e->count - 1] = lval_copy(v);
   strcpy(e->syms[e->count - 1], k->sym);
+
+  return 1;
 };
 
 void lenv_add_buildin(Lenv* e, char* name, Lbuildin func) {
   Lval* k = lval_sym(name);
   Lval* v = lval_fun(func);
-  lenv_put(e, k, v);
+  lenv_put(e, k, v, true);
   lval_del(k); lval_del(v);
 }
 
@@ -386,7 +393,9 @@ Lval* buildin_def(Lenv* e, Lval* l) {
       syms->count, l->count - 1);
 
   for (int i = 0; i < syms->count; i++) {
-    lenv_put(e, syms->cell[i], l->cell[i + 1]);
+    if (!lenv_put(e, syms->cell[i], l->cell[i + 1], false)) {
+      return lval_err("symbol declaration failed, %s names are taken", syms->cell[i]->sym);
+    }
   }
 
   return lval_sexp();

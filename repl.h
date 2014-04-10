@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <math.h>
 #include <assert.h>
 
@@ -61,11 +62,13 @@ struct Lenv {
   int count;
   char** syms;
   Lval** vals;
+  bool* status; // freeze status
 };
+
 Lenv* lenv_new(void);
 void lenv_del(Lenv* e);
 Lval* lenv_get(Lenv* e, Lval* k);
-void lenv_put(Lenv* e, Lval* k, Lval* v);
+bool lenv_put(Lenv* e, Lval* k, Lval* v, bool status); // 1 = freeze, 0 = mutable
 void lenv_add_buildin(Lenv* e, char* name, Lbuildin func);
 void lenv_init_buildins(Lenv* e);
 
