@@ -3,24 +3,30 @@
 #include <math.h>
 #include <assert.h>
 
-enum LTYPE { LVAL_NUM, LVAL_ERR, LVAL_SYM, LVAL_SEXPR, LVAL_QEXPR};
+enum LTYPE { LVAL_NUM, LVAL_ERR, LVAL_SYM, LVAL_SEXPR, LVAL_QEXPR, LVAL_FUN};
 #define LASSERT(l, cond, err) if (cond) { lval_del(l); return lval_err(err); };
 #define LNONEMPTY(l) LASSERT(l, l->cell[0]->count == 0, "{} is not allowed!")
 #define LARGNUM(l, i) LASSERT(l, l->count != i, "Function passed with wrong arguments!");
 
+typedef struct Lval Lval;
+typedef struct Lenv Lenv;
+typedef Lval* (*Lbuildin)(Lenv*, Lval*);
+
 // Lisp Values for evaluation
-typedef struct Lval {
+struct Lval {
   enum LTYPE type;
 
   long num; // for number
 
   char* err; // for error messages
   char* sym; // for symbol
+  Lbuildin fun;
 
   // for sexp
   int count;
   struct Lval** cell;
-} Lval;
+};
+
 
 // Construction methods
 Lval* lval_num(int num);
@@ -28,6 +34,7 @@ Lval* lval_err(char* m);
 Lval* lval_sym(char* s);
 Lval* lval_sexp(void);
 Lval* lval_qexp(void);
+Lval* lval_fun(Lbuildin func);
 
 // Destruction methods
 void lval_del(Lval* v);

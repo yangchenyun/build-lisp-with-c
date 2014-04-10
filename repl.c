@@ -44,9 +44,18 @@ Lval* lval_qexp(void) {
   return v;
 }
 
+Lval* lval_fun(Lbuildin func) {
+  Lval* v = malloc(sizeof(Lval));
+  v->type = LVAL_FUN;
+  v->fun = func;
+  return v;
+};
+
 void lval_del(Lval* v) {
   switch (v->type) {
-    case LVAL_NUM: break;
+    case LVAL_NUM:
+    case LVAL_FUN:
+      break;
     case LVAL_ERR: free(v->err); break;
     case LVAL_SYM: free(v->sym); break;
     case LVAL_SEXPR:
@@ -85,6 +94,7 @@ void lval_print(Lval* v) {
     case LVAL_SYM: fprintf(out, "%s", v->sym); break;
     case LVAL_SEXPR: lval_expr_print(v, '(', ')'); break;
     case LVAL_QEXPR: lval_expr_print(v, '{', '}'); break;
+    case LVAL_FUN: fprintf(out, "<function>"); break;
   }
 }
 
@@ -381,9 +391,7 @@ int main(int argc, const char *argv[])
 
   mpca_lang(MPC_LANG_DEFAULT,
       " \
-      symbol  : '+' | '-' | '*' | '/' | '%' | '^' | \
-      \"add\" | \"sub\" | \"mul\" | \"div\" | \"min\" | \"max\" | \
-      \"list\" | \"head\" | \"tail\" | \"join\" | \"eval\" | \"cons\" | \"len\" | \"init\"; \
+      symbol  : /[a-zA-Z0-9_+\\-*\\/\\\\=<>!&]+/; \
       number  : /-?[0-9]+(\\.[0-9]+)?/; \
       expr    : <number> | <symbol> | <sexpr> | <qexpr> ;\
       sexpr   : '(' <expr>* ')';\
