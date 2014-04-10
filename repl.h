@@ -27,7 +27,6 @@ struct Lval {
   struct Lval** cell;
 };
 
-
 // Construction methods
 Lval* lval_num(int num);
 Lval* lval_err(char* m);
@@ -52,6 +51,17 @@ Lval* lval_take(Lval* v, int i); // take elements and leave out the rest
 Lval* lval_join(Lval* v, Lval* u);
 Lval* lval_insert(Lval* v, Lval* a, int i);
 
+struct Lenv {
+  int count;
+  char** syms;
+  Lval** vals;
+};
+Lenv* lenv_new(void);
+void lenv_del(Lenv* e);
+Lval* lenv_get(Lenv* e, Lval* k);
+void lenv_put(Lenv* e, Lval* k, Lval* v);
+void lenv_add_buildin(Lenv* e, char* name, Lbuildin func);
+void lenv_init_buildins(Lenv* e);
 // buildin functions
 Lval* buildin(Lval* l, char* func);
 Lval* buildin_op(Lval* l, char* op);

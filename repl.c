@@ -265,7 +265,63 @@ Lval* lval_join(Lval* v, Lval* u) {
   return v;
 };
 
-Lval* buildin_list(Lval* l) {
+Lenv* lenv_new(void) {
+  Lenv* e = malloc(sizeof(Lenv));
+  e->count = 0;
+  e->syms = NULL;
+  e->vals = NULL;
+  return e;
+};
+
+void lenv_del(Lenv* e) {
+  for (int i = 0; i < e->count; i++) {
+    free(e->syms[i]);
+    lval_del(e->vals[i]);
+  }
+
+  free(e->syms);
+  free(e->vals);
+  free(e);
+};
+
+Lval* lenv_get(Lenv* e, Lval* k) {
+  for (int i = 0; i < e->count; i++) {
+    if (strcmp(k->sym, e->syms[i]) == 0) {
+      return lval_copy(e->vals[i]); // internal immutable data structure
+    }
+  }
+
+  return lval_err("symbol not found!");
+};
+
+void lenv_put(Lenv* e, Lval* k, Lval* v) {
+  assert(k->type == LVAL_SYM);
+
+  // for symbol exists in the env
+  for (int i = 0; i < e->count; i++) {
+    if (strcmp(k->sym, e->syms[i]) == 0) {
+      lval_del(e->vals[i]);
+      e->vals[i] = lval_copy(v);
+      return;
+    }
+  }
+
+  // new symbols
+  e->count++;
+  e->syms = realloc(e->syms, sizeof(char*) * e->count);
+  e->vals = realloc(e->vals, sizeof(Lval*) * e->count);
+
+  e->syms[e->count - 1] = malloc(strlen(k->sym) + 1);
+  e->vals[e->count - 1] = lval_copy(v);
+  strcpy(e->syms[e->count - 1], k->sym);
+};
+
+void lenv_add_buildin(Lenv* e, char* name, Lbuildin func) {
+  Lval* k = lval_sym(name);
+  Lval* v = lval_fun(func);
+  lenv_put(e, k, v);
+  lval_del(k); lval_del(v);
+}
   l->type = LVAL_QEXPR;
   return l;
 };
