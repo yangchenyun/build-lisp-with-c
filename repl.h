@@ -9,7 +9,9 @@ enum LTYPE { LVAL_NUM, LVAL_ERR, LVAL_SYM, LVAL_SEXPR, LVAL_QEXPR, LVAL_FUN};
     lval_del(l); \
     return err; };
 #define LNONEMPTY(l) LASSERT(l, l->cell[0]->count != 0, "{} is not allowed!")
-#define LARGNUM(l, i) LASSERT(l, l->count == i, "Function passed with wrong arguments!");
+#define LARGNUM(l, i) LASSERT(l, l->count == i, "Function passed with wrong arguments. Expect %d, Got %d", i, l->count);
+
+char* ltype_name(int t);
 
 typedef struct Lval Lval;
 typedef struct Lenv Lenv;

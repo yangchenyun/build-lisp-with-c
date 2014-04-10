@@ -4,6 +4,17 @@
 #include "repl.h"
 #define DEBUG 0
 
+char* ltype_name(int t) {
+  switch(t) {
+    case LVAL_FUN: return "Function";
+    case LVAL_NUM: return "Number";
+    case LVAL_ERR: return "Error";
+    case LVAL_SYM: return "Symbol";
+    case LVAL_SEXPR: return "S-Expression";
+    case LVAL_QEXPR: return "Q-Expression";
+    default: return "Unknown";
+  }
+}
 // helper functions to create num / errors
 Lval* lval_num(int num) {
   Lval* v = malloc(sizeof(Lval));
@@ -198,7 +209,7 @@ Lval* lval_eval_sexpr(Lenv* e, Lval* v) {
   Lval* f = lval_pop(v, 0);
   if (f->type != LVAL_FUN) {
     lval_del(f); lval_del(v);
-    return lval_err("the first element is not a function");
+    return lval_err("Expect the first element to be a Function, Got %s", ltype_name(f->type));
   }
 
   // apply the operation for the rest of list
@@ -362,14 +373,20 @@ void lenv_init_buildins(Lenv* e) {
 }
 
 Lval* buildin_def(Lenv* e, Lval* l) {
-  LASSERT(l, l->cell[0]->type == LVAL_QEXPR, "Function 'def' passed in incorrect type");
+  LASSERT(l, l->cell[0]->type == LVAL_QEXPR,
+      "Function 'def' passed in incorrect type at argument 0. Got %s, Expect %s.",
+      ltype_name(l->cell[0]->type), ltype_name(LVAL_QEXPR));
   Lval* syms = l->cell[0];
 
   for (int i = 0; i < syms->count; i++) {
-    LASSERT(l, syms->cell[i]->type == LVAL_SYM, "Function 'def' passed in incorrect type");
+    LASSERT(l, syms->cell[i]->type == LVAL_SYM,
+        "Function 'def' passed in incorrect type. Got %s, Expect %s",
+        ltype_name(syms->cell[i]->type), ltype_name(LVAL_SYM));
   }
 
-  LASSERT(l, syms->count == l->count - 1, "Function 'def' symbols and values don't match");
+  LASSERT(l, syms->count == l->count - 1,
+      "Function 'def' symbols and values don't match, symbols are %d, values are %d",
+      syms->count, l->count - 1);
 
   for (int i = 0; i < syms->count; i++) {
     lenv_put(e, syms->cell[i], l->cell[i + 1]);
@@ -385,7 +402,7 @@ Lval* buildin_list(Lenv* e, Lval* l) {
 Lval* buildin_head(Lenv* e, Lval* l) {
   LNONEMPTY(l);
   LARGNUM(l, 1);
-  LASSERT(l, l->cell[0]->type == LVAL_QEXPR, "Function 'head' only accept Qexpr!");
+  LASSERT(l, l->cell[0]->type == LVAL_QEXPR, "Function 'head' only accept Qexpr, Got %s", ltype_name(l->cell[0]->type));
 
   Lval* ql = lval_take(l, 0); // extract the qexpr
   while (ql->count > 1) { lval_del(lval_pop(ql, 1)); }
@@ -395,7 +412,7 @@ Lval* buildin_head(Lenv* e, Lval* l) {
 Lval* buildin_tail(Lenv* e, Lval* l) {
   LNONEMPTY(l);
   LARGNUM(l, 1);
-  LASSERT(l, l->cell[0]->type == LVAL_QEXPR, "Function 'tail' only accept Qexpr!");
+  LASSERT(l, l->cell[0]->type == LVAL_QEXPR, "Function 'tail' only accept Qexpr, Got %s", ltype_name(l->cell[0]->type));
 
   Lval* ql = lval_take(l, 0); // extract the qexpr
   lval_del(lval_pop(ql, 0));
@@ -404,7 +421,8 @@ Lval* buildin_tail(Lenv* e, Lval* l) {
 
 Lval* buildin_join(Lenv* e, Lval* l) {
   for (int i = 0; i < l->count; i++) {
-    LASSERT(l, l->cell[i]->type == LVAL_QEXPR, "Function 'join' only accept Qexprs!");
+    LASSERT(l, l->cell[i]->type == LVAL_QEXPR,
+        "Function 'tail' only accept Qexprs as arguments, Got %s at %d", ltype_name(l->cell[i]->type), i);
   }
 
   Lval* ql = lval_pop(l, 0);
@@ -419,7 +437,8 @@ Lval* buildin_join(Lenv* e, Lval* l) {
 
 Lval* buildin_cons(Lenv* e, Lval* l) {
   LARGNUM(l, 2);
-  LASSERT(l, l->cell[1]->type == LVAL_QEXPR, "Function 'cons' could only apply to Qexpr!");
+  LASSERT(l, l->cell[1]->type == LVAL_QEXPR,
+      "Function 'cons' could only apply to Qexpr. Got %s", ltype_name(l->cell[1]->type));
 
   Lval* a = lval_pop(l, 0);
   Lval* ql = lval_pop(l, 0);
@@ -460,8 +479,10 @@ Lval* buildin_init(Lenv* e, Lval* l) {
 Lval* buildin_op(Lenv* e, Lval* l, char* op) {
   for (int i = 0; i < l->count; i++) {
     if (l->cell[i]->type != LVAL_NUM) {
+      Lval* err = lval_err("Function '%s' passed in incorrect type for args %d. Got %s, Expect %s",
+          op, i, ltype_name(l->cell[i]->type), ltype_name(LVAL_NUM));
       lval_del(l);
-      return lval_err("Cannot operator on non number!");
+      return err;
     }
   }
 
