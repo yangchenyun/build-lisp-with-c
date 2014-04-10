@@ -173,11 +173,10 @@ Lval* lval_read(mpc_ast_t* t) {
   return x;
 };
 
-
-Lval* lval_eval_sexpr(Lval* v) {
+Lval* lval_eval_sexpr(Lenv* e, Lval* v) {
   // replace children with evaluated result
   for (int i = 0; i < v->count; i++) {
-    v->cell[i] = lval_eval(v->cell[i]);
+    v->cell[i] = lval_eval(e, v->cell[i]);
   }
 
   // propagate the errors
@@ -191,20 +190,25 @@ Lval* lval_eval_sexpr(Lval* v) {
   if (v->count == 1) { return lval_take(v, 0); }
 
   Lval* f = lval_pop(v, 0);
-  if (f->type != LVAL_SYM) {
+  if (f->type != LVAL_FUN) {
     lval_del(f); lval_del(v);
-    return lval_err("S-expression Does not start with symbol!");
+    return lval_err("the first element is not a function");
   }
 
   // apply the operation for the rest of list
-  Lval* result = buildin(v, f->sym);
+  Lval* result = f->fun(e, v);
   lval_del(f);
   return result;
 };
 
-Lval* lval_eval(Lval* v) {
+Lval* lval_eval(Lenv* e, Lval* v) {
+  if (v->type == LVAL_SYM) {
+    Lval* x = lenv_get(e, v);
+    lval_del(v);
+    return x;
+  }
   if (v->type == LVAL_SEXPR) {
-    return lval_eval_sexpr(v);
+    return lval_eval_sexpr(e, v);
   }
 
   return v;
@@ -322,11 +326,38 @@ void lenv_add_buildin(Lenv* e, char* name, Lbuildin func) {
   lenv_put(e, k, v);
   lval_del(k); lval_del(v);
 }
+
+Lval* buildin_add(Lenv* e, Lval* l) { return buildin_op(e, l, "+"); }
+Lval* buildin_sub(Lenv* e, Lval* l) { return buildin_op(e, l, "-"); }
+Lval* buildin_mul(Lenv* e, Lval* l) { return buildin_op(e, l, "*"); }
+Lval* buildin_div(Lenv* e, Lval* l) { return buildin_op(e, l, "/"); }
+Lval* buildin_mod(Lenv* e, Lval* l) { return buildin_op(e, l, "%"); }
+
+void lenv_init_buildins(Lenv* e) {
+  /* List Functions */
+  lenv_add_buildin(e, "list", buildin_list);
+  lenv_add_buildin(e, "head", buildin_head);
+  lenv_add_buildin(e, "tail",  buildin_tail);
+  lenv_add_buildin(e, "eval", buildin_eval);
+  lenv_add_buildin(e, "join",  buildin_join);
+  lenv_add_buildin(e, "cons", buildin_cons);
+  lenv_add_buildin(e, "len",  buildin_len);
+  lenv_add_buildin(e, "init",  buildin_init);
+
+  /* Mathematical Functions */
+  lenv_add_buildin(e, "+", buildin_add);
+  lenv_add_buildin(e, "-", buildin_sub);
+  lenv_add_buildin(e, "*", buildin_mul);
+  lenv_add_buildin(e, "/", buildin_div);
+  lenv_add_buildin(e, "%", buildin_mod);
+}
+
+Lval* buildin_list(Lenv* e, Lval* l) {
   l->type = LVAL_QEXPR;
   return l;
 };
 
-Lval* buildin_head(Lval* l) {
+Lval* buildin_head(Lenv* e, Lval* l) {
   LNONEMPTY(l);
   LARGNUM(l, 1);
   LASSERT(l, l->cell[0]->type != LVAL_QEXPR, "Function 'head' only accept Qexpr!");
@@ -335,7 +366,7 @@ Lval* buildin_head(Lval* l) {
   return lval_take(ql, 0);
 };
 
-Lval* buildin_tail(Lval* l) {
+Lval* buildin_tail(Lenv* e, Lval* l) {
   LNONEMPTY(l);
   LARGNUM(l, 1);
   LASSERT(l, l->cell[0]->type != LVAL_QEXPR, "Function 'tail' only accept Qexpr!");
@@ -345,7 +376,7 @@ Lval* buildin_tail(Lval* l) {
   return ql;
 };
 
-Lval* buildin_join(Lval* l) {
+Lval* buildin_join(Lenv* e, Lval* l) {
   for (int i = 0; i < l->count; i++) {
     LASSERT(l, l->cell[i]->type != LVAL_QEXPR, "Function 'join' only accept Qexprs!");
   }
@@ -360,7 +391,7 @@ Lval* buildin_join(Lval* l) {
   return ql;
 }
 
-Lval* buildin_cons(Lval* l) {
+Lval* buildin_cons(Lenv* e, Lval* l) {
   LARGNUM(l, 2);
   LASSERT(l, l->cell[1]->type != LVAL_QEXPR, "Function 'cons' could only apply to Qexpr!");
 
@@ -371,16 +402,16 @@ Lval* buildin_cons(Lval* l) {
   return ql;
 };
 
-Lval* buildin_eval(Lval* l) {
+Lval* buildin_eval(Lenv* e, Lval* l) {
   LNONEMPTY(l);
   LARGNUM(l, 1);
 
   Lval* ql = lval_take(l, 0);
   ql->type = LVAL_SEXPR;
-  return lval_eval(ql);
+  return lval_eval(e, ql);
 };
 
-Lval* buildin_len(Lval* l) {
+Lval* buildin_len(Lenv* e, Lval* l) {
   LARGNUM(l, 1);
   LASSERT(l, l->cell[0]->type != LVAL_QEXPR, "Function 'cons' could only apply to Qexpr!");
 
@@ -390,7 +421,7 @@ Lval* buildin_len(Lval* l) {
   return lval_num(len);
 };
 
-Lval* buildin_init(Lval* l) {
+Lval* buildin_init(Lenv* e, Lval* l) {
   LNONEMPTY(l);
   LARGNUM(l, 1);
   LASSERT(l, l->cell[0]->type != LVAL_QEXPR, "Function 'init' only accept Qexpr!");
@@ -400,23 +431,7 @@ Lval* buildin_init(Lval* l) {
   return ql;
 };
 
-Lval* buildin(Lval* l, char* fn) {
-  if (strcmp(fn, "list") == 0) { return buildin_list(l); }
-  if (strcmp(fn, "head") == 0) { return buildin_head(l); }
-  if (strcmp(fn, "tail") == 0) { return buildin_tail(l); }
-  if (strcmp(fn, "join") == 0) { return buildin_join(l); }
-  if (strcmp(fn, "cons") == 0) { return buildin_cons(l); }
-  if (strcmp(fn, "eval") == 0) { return buildin_eval(l); }
-  if (strcmp(fn, "len") == 0) { return buildin_len(l); }
-  if (strcmp(fn, "init") == 0) { return buildin_init(l); }
-  if (strstr("-+*^%/ min max add sub mul div", fn)) {
-    return buildin_op(l, fn);
-  }
-  lval_del(l);
-  return lval_err("Unknown functions!");
-};
-
-Lval* buildin_op(Lval* l, char* op) {
+Lval* buildin_op(Lenv* e, Lval* l, char* op) {
   for (int i = 0; i < l->count; i++) {
     if (l->cell[i]->type != LVAL_NUM) {
       lval_del(l);

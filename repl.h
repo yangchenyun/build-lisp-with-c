@@ -62,21 +62,27 @@ Lval* lenv_get(Lenv* e, Lval* k);
 void lenv_put(Lenv* e, Lval* k, Lval* v);
 void lenv_add_buildin(Lenv* e, char* name, Lbuildin func);
 void lenv_init_buildins(Lenv* e);
+
 // buildin functions
-Lval* buildin(Lval* l, char* func);
-Lval* buildin_op(Lval* l, char* op);
-Lval* buildin_list(Lval* l); // (list 1 2 3 4)   => {1 2 3 4}
-Lval* buildin_head(Lval* l); // (head {1 2 3})   => {1}
-Lval* buildin_tail(Lval* l); // (tail {1 2 3})   => {2 3}
-Lval* buildin_join(Lval* a); // (join {1} {2 3}) => {1 2 3}
-Lval* buildin_eval(Lval* l); // (eval {+ 1 2})   => 3
-Lval* buildin_cons(Lval* l); // (cons 1 {2 3})   => {1, 2, 3}
-Lval* buildin_len(Lval* l);  // (len {1 2 3})    => 3
-Lval* buildin_init(Lval* l); // (init {1 2 3})   => {1 2}
+Lval* buildin_op(Lenv* e, Lval* l, char* op);
+Lval* buildin_list(Lenv* e, Lval* l); // (list 1 2 3 4)   => {1 2 3 4}
+Lval* buildin_head(Lenv* e, Lval* l); // (head {1 2 3})   => {1}
+Lval* buildin_tail(Lenv* e, Lval* l); // (tail {1 2 3})   => {2 3}
+Lval* buildin_join(Lenv* e, Lval* a); // (join {1} {2 3}) => {1 2 3}
+Lval* buildin_eval(Lenv* e, Lval* l); // (eval {+ 1 2})   => 3
+Lval* buildin_cons(Lenv* e, Lval* l); // (cons 1 {2 3})   => {1, 2, 3}
+Lval* buildin_len(Lenv* e, Lval* l);  // (len {1 2 3})    => 3
+Lval* buildin_init(Lenv* e, Lval* l); // (init {1 2 3})   => {1 2}
+
+Lval* buildin_add(Lenv* e, Lval* l);
+Lval* buildin_sub(Lenv* e, Lval* l);
+Lval* buildin_mul(Lenv* e, Lval* l);
+Lval* buildin_div(Lenv* e, Lval* l);
+Lval* buildin_mod(Lenv* e, Lval* l);
 
 // Evaluation / Data Transformation
-Lval* lval_eval_sexpr(Lval* v);
-Lval* lval_eval(Lval* v);
+Lval* lval_eval_sexpr(Lenv* e, Lval* v);
+Lval* lval_eval(Lenv* e, Lval* v);
 
 // API with AST
 Lval* lval_read_num(mpc_ast_t* t);
