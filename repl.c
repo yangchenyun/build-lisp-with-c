@@ -493,7 +493,7 @@ int main(int argc, const char *argv[])
 
   mpca_lang(MPC_LANG_DEFAULT,
       " \
-      symbol  : /[a-zA-Z0-9_+\\-*\\/\\\\=<>!&]+/; \
+      symbol  : /[a-zA-Z0-9_+\\-*\\/%\\\\=<>!&]+/; \
       number  : /-?[0-9]+(\\.[0-9]+)?/; \
       expr    : <number> | <symbol> | <sexpr> | <qexpr> ;\
       sexpr   : '(' <expr>* ')';\
