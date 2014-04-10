@@ -363,7 +363,8 @@ Lval* buildin_head(Lenv* e, Lval* l) {
   LASSERT(l, l->cell[0]->type != LVAL_QEXPR, "Function 'head' only accept Qexpr!");
 
   Lval* ql = lval_take(l, 0); // extract the qexpr
-  return lval_take(ql, 0);
+  while (ql->count > 1) { lval_del(lval_pop(ql, 1)); }
+  return ql;
 };
 
 Lval* buildin_tail(Lenv* e, Lval* l) {
