@@ -80,6 +80,8 @@ Lval* buildin_mul(Lenv* e, Lval* l);
 Lval* buildin_div(Lenv* e, Lval* l);
 Lval* buildin_mod(Lenv* e, Lval* l);
 
+Lval* buildin_def(Lenv* e, Lval* l);
+
 // Evaluation / Data Transformation
 Lval* lval_eval_sexpr(Lenv* e, Lval* v);
 Lval* lval_eval(Lenv* e, Lval* v);

@@ -350,8 +350,27 @@ void lenv_init_buildins(Lenv* e) {
   lenv_add_buildin(e, "*", buildin_mul);
   lenv_add_buildin(e, "/", buildin_div);
   lenv_add_buildin(e, "%", buildin_mod);
+
+  /* Variable Functions */
+  lenv_add_buildin(e, "def",  buildin_def);
 }
 
+Lval* buildin_def(Lenv* e, Lval* l) {
+  LASSERT(l, l->cell[0]->type != LVAL_QEXPR, "Function 'def' passed in incorrect type");
+  Lval* syms = l->cell[0];
+
+  for (int i = 0; i < syms->count; i++) {
+    LASSERT(l, syms->cell[i]->type != LVAL_SYM, "Function 'def' passed in incorrect type");
+  }
+
+  LASSERT(l, syms->count != l->count - 1, "Function 'def' symbols and values don't match");
+
+  for (int i = 0; i < syms->count; i++) {
+    lenv_put(e, syms->cell[i], l->cell[i + 1]);
+  }
+
+  return lval_sexp();
+};
 Lval* buildin_list(Lenv* e, Lval* l) {
   l->type = LVAL_QEXPR;
   return l;
