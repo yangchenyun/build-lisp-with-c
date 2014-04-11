@@ -324,6 +324,7 @@ Lval* lval_join(Lval* v, Lval* u) {
 Lenv* lenv_new(void) {
   Lenv* e = malloc(sizeof(Lenv));
   e->count = 0;
+  e->par = NULL;
   e->syms = NULL;
   e->vals = NULL;
   e->status = NULL;
@@ -349,7 +350,11 @@ Lval* lenv_get(Lenv* e, Lval* k) {
     }
   }
 
-  return lval_err("unbound symbol %s", k->sym);
+  if (e->par) {
+    return lenv_get(e->par, k);
+  } else {
+    return lval_err("unbound symbol %s", k->sym);
+  }
 };
 
 void lenv_val_print(Lenv* e, Lval* k) {
@@ -378,6 +383,7 @@ void lenv_print(Lenv* e) {
 Lenv* lenv_copy(Lenv* e) {
   Lenv* n = lenv_new();
 
+  n->par = e->par;
   n->count = e->count;
   n->syms = malloc(sizeof(char*) * n->count);
   n->vals = malloc(sizeof(Lval*) * n->count);
@@ -392,6 +398,11 @@ Lenv* lenv_copy(Lenv* e) {
   return n;
 }
 
+bool lenv_def(Lenv* e, Lval* k, Lval* v, bool status) {
+  while (e->par) { e = e->par; }
+  return lenv_put(e, k, v, status);
+};
+
 bool lenv_put(Lenv* e, Lval* k, Lval* v, bool status) {
   assert(k->type == LVAL_SYM);
 
@@ -404,7 +415,6 @@ bool lenv_put(Lenv* e, Lval* k, Lval* v, bool status) {
       return 0;
     }
   }
-
   // new symbols
   e->count++;
   e->syms = realloc(e->syms, sizeof(char*) * e->count);
@@ -452,29 +462,37 @@ void lenv_init_buildins(Lenv* e) {
 
   /* Variable Functions */
   lenv_add_buildin(e, "def", buildin_def);
+  lenv_add_buildin(e, "=", buildin_put);
   lenv_add_buildin(e, "exit", buildin_exit);
   lenv_add_buildin(e, "lambda", buildin_lambda);
 }
 
-Lval* buildin_def(Lenv* e, Lval* l) {
-  LASSERT_TYPE("def", l, 0, LVAL_QEXPR);
+Lval* buildin_def(Lenv* e, Lval* l) { return buildin_var(e, l, "def"); }
+Lval* buildin_put(Lenv* e, Lval* l) { return buildin_var(e, l, "="); }
+
+Lval* buildin_var(Lenv* e, Lval* l, char* func) {
+  LASSERT_TYPE(func, l, 0, LVAL_QEXPR);
 
   Lval* syms = l->cell[0];
 
   for (int i = 0; i < syms->count; i++) {
-    LASSERT_TYPE("def", syms, i, LVAL_SYM);
+    LASSERT_TYPE(func, syms, i, LVAL_SYM);
   }
 
   LASSERT(l, syms->count == l->count - 1,
-      "Function 'def' symbols and values don't match, symbols are %d, values are %d",
-      syms->count, l->count - 1);
+      "Function %s symbols and values don't match, symbols are %d, values are %d",
+      func, syms->count, l->count - 1);
 
   for (int i = 0; i < syms->count; i++) {
-    if (lenv_put(e, syms->cell[i], l->cell[i + 1], false) == ERR_BUILDIN) {
+    bool error;
+    if (strcmp(func, "def") == 0) { error = lenv_def(e, syms->cell[i], l->cell[i + 1], false); }
+    if (strcmp(func, "=")   == 0) { error = lenv_put(e, syms->cell[i], l->cell[i + 1], false); }
+    if (error == ERR_BUILDIN) {
       return lval_err("symbol declaration failed, %s names are taken", syms->cell[i]->sym);
     }
   }
 
+  lval_del(l);
   return lval_sexp();
 };
 

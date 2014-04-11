@@ -68,6 +68,7 @@ Lval* lval_insert(Lval* v, Lval* a, int i);
 
 struct Lenv {
   int count;
+  Lenv* par;
   char** syms;
   Lval** vals;
   bool* status; // freeze status
@@ -77,6 +78,7 @@ Lenv* lenv_new(void);
 void lenv_del(Lenv* e);
 Lval* lenv_get(Lenv* e, Lval* k);
 bool lenv_put(Lenv* e, Lval* k, Lval* v, bool status); // 1 = freeze, 0 = mutable
+bool lenv_def(Lenv* e, Lval* k, Lval* v, bool status); // 1 = freeze, 0 = mutable
 void lenv_add_buildin(Lenv* e, char* name, Lbuildin func);
 void lenv_init_buildins(Lenv* e);
 void lenv_val_print(Lenv* e, Lval* k);
@@ -101,7 +103,9 @@ Lval* buildin_mul(Lenv* e, Lval* l);
 Lval* buildin_div(Lenv* e, Lval* l);
 Lval* buildin_mod(Lenv* e, Lval* l);
 
+Lval* buildin_var(Lenv* e, Lval* l, char* func);
 Lval* buildin_def(Lenv* e, Lval* l);
+Lval* buildin_put(Lenv* e, Lval* l);
 Lval* buildin_exit(Lenv* e, Lval* l);
 Lval* buildin_lambda(Lenv* e, Lval* l);
 
