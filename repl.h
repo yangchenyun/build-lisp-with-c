@@ -29,7 +29,12 @@ struct Lval {
 
   char* err; // for error messages
   char* sym; // for symbol
-  Lbuildin fun;
+
+  /*  Function */
+  Lbuildin buildin;
+  Lenv* env;
+  Lval* formals;
+  Lval* body;
 
   // for sexp
   int count;
@@ -43,6 +48,7 @@ Lval* lval_sym(char* s);
 Lval* lval_sexp(void);
 Lval* lval_qexp(void);
 Lval* lval_fun(Lbuildin func);
+Lval* lval_lambda(Lval* formals, Lval* body);
 Lval* lval_copy(Lval* l);
 
 // Destruction methods
@@ -76,6 +82,7 @@ void lenv_init_buildins(Lenv* e);
 void lenv_val_print(Lenv* e, Lval* k);
 void lenv_val_println(Lenv* e, Lval* k);
 void lenv_print(Lenv* e);
+Lenv* lenv_copy(Lenv* e);
 
 // buildin functions
 Lval* buildin_op(Lenv* e, Lval* l, char* op);

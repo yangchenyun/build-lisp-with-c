@@ -64,9 +64,21 @@ Lval* lval_qexp(void) {
 Lval* lval_fun(Lbuildin func) {
   Lval* v = malloc(sizeof(Lval));
   v->type = LVAL_FUN;
-  v->fun = func;
+  v->buildin = func;
   return v;
 };
+
+Lval* lval_lambda(Lval* formals, Lval* body) {
+  Lval* v = malloc(sizeof(Lval));
+  v->type = LVAL_FUN;
+
+  v->buildin = NULL;
+  v->env = lenv_new();
+  v->formals = formals;
+  v->body = body;
+
+  return v;
+}
 
 Lval* lval_copy(Lval* l) {
   Lval* v = malloc(sizeof(Lval));
@@ -77,7 +89,14 @@ Lval* lval_copy(Lval* l) {
       v->num = l->num;
       break;
     case LVAL_FUN:
-      v->fun = l->fun;
+      if (v->buildin) {
+        v->buildin = l->buildin;
+      } else {
+        v->buildin = NULL;
+        v->env = lenv_copy(l->env);
+        v->formals = lval_copy(l->formals);
+        v->body = lval_copy(l->body);
+      }
       break;
     case LVAL_ERR:
       v->err = malloc(strlen(l->err) + 1); strcpy(v->err, l->err);
@@ -102,6 +121,11 @@ void lval_del(Lval* v) {
   switch (v->type) {
     case LVAL_NUM:
     case LVAL_FUN:
+      if (!v->buildin) {
+        lenv_del(v->env);
+        lval_del(v->formals);
+        lval_del(v->body);
+      }
       break;
     case LVAL_ERR: free(v->err); break;
     case LVAL_SYM: free(v->sym); break;
@@ -141,7 +165,17 @@ void lval_print(Lval* v) {
     case LVAL_SYM: fprintf(out, "%s", v->sym); break;
     case LVAL_SEXPR: lval_expr_print(v, '(', ')'); break;
     case LVAL_QEXPR: lval_expr_print(v, '{', '}'); break;
-    case LVAL_FUN: fprintf(out, "<function>"); break;
+    case LVAL_FUN:
+      if (v->buildin) {
+        fprintf(out, "<build>");
+      } else {
+        fprintf(out, "(lambda ");
+        lval_print(v->formals);
+        fputc(' ', out);
+        lval_print(v->body);
+        fputc(')', out);
+      }
+      break;
   }
 }
 
@@ -214,7 +248,7 @@ Lval* lval_eval_sexpr(Lenv* e, Lval* v) {
   }
 
   // apply the operation for the rest of list
-  Lval* result = f->fun(e, v);
+  Lval* result = f->buildin(e, v);
   lval_del(f);
   return result;
 };
@@ -340,6 +374,10 @@ void lenv_print(Lenv* e) {
     fputc('\n', out);
   };
 };
+
+Lenv* lenv_copy(Lenv* e) {
+  return lenv_new(); 
+}
 
 bool lenv_put(Lenv* e, Lval* k, Lval* v, bool status) {
   assert(k->type == LVAL_SYM);
