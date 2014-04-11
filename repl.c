@@ -146,8 +146,9 @@ void lval_print(Lval* v) {
 }
 
 void lval_println(Lval* v) {
+  FILE* out = DEBUG ? stderr : stdout;
   lval_print(v);
-  putchar('\n');
+  fputc('\n', out);
 }
 
 // add x to the sexp or qexp
@@ -315,6 +316,29 @@ Lval* lenv_get(Lenv* e, Lval* k) {
   }
 
   return lval_err("unbound symbol %s", k->sym);
+};
+
+void lenv_val_print(Lenv* e, Lval* k) {
+  FILE* out = DEBUG ? stderr : stdout;
+  Lval* v = lenv_get(e, k);
+  lval_print(k);
+  fputc(':', out);
+  fputc(' ', out);
+  lval_print(v);
+};
+
+void lenv_val_println(Lenv* e, Lval* k) {
+  FILE* out = DEBUG ? stderr : stdout;
+  lenv_val_print(e, k);
+  fputc('\n', out);
+};
+void lenv_print(Lenv* e) {
+  FILE* out = DEBUG ? stderr : stdout;
+  for (int i = 0; i < e->count; i++) {
+    fprintf(out, "%s => [%s]", e->syms[i], ltype_name(e->vals[i]->type));
+    lval_print(e->vals[i]);
+    fputc('\n', out);
+  };
 };
 
 bool lenv_put(Lenv* e, Lval* k, Lval* v, bool status) {

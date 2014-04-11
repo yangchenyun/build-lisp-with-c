@@ -72,6 +72,9 @@ Lval* lenv_get(Lenv* e, Lval* k);
 bool lenv_put(Lenv* e, Lval* k, Lval* v, bool status); // 1 = freeze, 0 = mutable
 void lenv_add_buildin(Lenv* e, char* name, Lbuildin func);
 void lenv_init_buildins(Lenv* e);
+void lenv_val_print(Lenv* e, Lval* k);
+void lenv_val_println(Lenv* e, Lval* k);
+void lenv_print(Lenv* e);
 
 // buildin functions
 Lval* buildin_op(Lenv* e, Lval* l, char* op);
