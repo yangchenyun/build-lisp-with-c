@@ -476,7 +476,7 @@ Lval* buildin_list(Lenv* e, Lval* l) {
 
 Lval* buildin_head(Lenv* e, Lval* l) {
   LNONEMPTY(l);
-  LARGNUM(l, 1);
+  LASSERT_NUM("head", l, 1);
   LASSERT_TYPE("head", l, 0, LVAL_QEXPR);
 
   Lval* ql = lval_take(l, 0); // extract the qexpr
@@ -486,7 +486,7 @@ Lval* buildin_head(Lenv* e, Lval* l) {
 
 Lval* buildin_tail(Lenv* e, Lval* l) {
   LNONEMPTY(l);
-  LARGNUM(l, 1);
+  LASSERT_NUM("tail", l, 1);
   LASSERT_TYPE("tail", l, 0, LVAL_QEXPR);
 
   Lval* ql = lval_take(l, 0); // extract the qexpr
@@ -510,7 +510,7 @@ Lval* buildin_join(Lenv* e, Lval* l) {
 }
 
 Lval* buildin_cons(Lenv* e, Lval* l) {
-  LARGNUM(l, 2);
+  LASSERT_NUM("cons", l, 2);
   LASSERT_TYPE("cons", l, 1, LVAL_QEXPR);
 
   Lval* a = lval_pop(l, 0);
@@ -522,7 +522,7 @@ Lval* buildin_cons(Lenv* e, Lval* l) {
 
 Lval* buildin_eval(Lenv* e, Lval* l) {
   LNONEMPTY(l);
-  LARGNUM(l, 1);
+  LASSERT_NUM("eval", l, 1);
 
   Lval* ql = lval_take(l, 0);
   ql->type = LVAL_SEXPR;
@@ -530,7 +530,7 @@ Lval* buildin_eval(Lenv* e, Lval* l) {
 };
 
 Lval* buildin_len(Lenv* e, Lval* l) {
-  LARGNUM(l, 1);
+  LASSERT_NUM("len", l, 1);
   LASSERT_TYPE("len", l, 0, LVAL_QEXPR);
 
   Lval* ql = lval_take(l, 0);
@@ -541,7 +541,7 @@ Lval* buildin_len(Lenv* e, Lval* l) {
 
 Lval* buildin_init(Lenv* e, Lval* l) {
   LNONEMPTY(l);
-  LARGNUM(l, 1);
+  LASSERT_NUM("init", l, 1);
   LASSERT_TYPE("init", l, 0, LVAL_QEXPR);
 
   Lval* ql = lval_take(l, 0); // extract the qexpr

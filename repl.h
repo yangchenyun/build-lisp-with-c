@@ -11,7 +11,7 @@ enum ENVERR { ERR_BUILDIN };
     lval_del(l); \
     return err; };
 #define LNONEMPTY(l) LASSERT(l, l->cell[0]->count != 0, "{} is not allowed!")
-#define LARGNUM(l, i) LASSERT(l, l->count == i, "Function passed with wrong arguments. Expect %d, Got %d", i, l->count);
+#define LASSERT_NUM(fname, l, i) LASSERT(l, l->count == i, "Function %s passed with wrong arguments. Expect %d, Got %d", fname, i, l->count);
 #define LASSERT_TYPE(fname, l, i, expect) \
   LASSERT(l, l->cell[i]->type == expect, "Function %s is passed in wrong type of arguments at %d. Expect %s, Got %s", fname, i, ltype_name(expect), ltype_name(l->cell[i]->type))
 
