@@ -405,12 +405,12 @@ void lenv_init_buildins(Lenv* e) {
 }
 
 Lval* buildin_def(Lenv* e, Lval* l) {
-  LISTYPE(l, l->cell[0]->type, LVAL_QEXPR);
+  LASSERT_TYPE("def", l, 0, LVAL_QEXPR);
 
   Lval* syms = l->cell[0];
 
   for (int i = 0; i < syms->count; i++) {
-    LISTYPE(l, syms->cell[i]->type, LVAL_SYM);
+    LASSERT_TYPE("def", syms, i, LVAL_SYM);
   }
 
   LASSERT(l, syms->count == l->count - 1,
@@ -427,7 +427,7 @@ Lval* buildin_def(Lenv* e, Lval* l) {
 };
 
 Lval* buildin_exit(Lenv* e, Lval* l) {
-  LISTYPE(l, l->cell[0]->type, LVAL_NUM);
+  LASSERT_TYPE('exit', l, 0, LVAL_NUM);
   exit(l->cell[0]->num);
 };
 
@@ -439,7 +439,7 @@ Lval* buildin_list(Lenv* e, Lval* l) {
 Lval* buildin_head(Lenv* e, Lval* l) {
   LNONEMPTY(l);
   LARGNUM(l, 1);
-  LISTYPE(l, l->cell[0]->type, LVAL_QEXPR);
+  LASSERT_TYPE("head", l, 0, LVAL_QEXPR);
 
   Lval* ql = lval_take(l, 0); // extract the qexpr
   while (ql->count > 1) { lval_del(lval_pop(ql, 1)); }
@@ -449,7 +449,7 @@ Lval* buildin_head(Lenv* e, Lval* l) {
 Lval* buildin_tail(Lenv* e, Lval* l) {
   LNONEMPTY(l);
   LARGNUM(l, 1);
-  LISTYPE(l, l->cell[0]->type, LVAL_QEXPR);
+  LASSERT_TYPE("tail", l, 0, LVAL_QEXPR);
 
   Lval* ql = lval_take(l, 0); // extract the qexpr
   lval_del(lval_pop(ql, 0));
@@ -458,7 +458,7 @@ Lval* buildin_tail(Lenv* e, Lval* l) {
 
 Lval* buildin_join(Lenv* e, Lval* l) {
   for (int i = 0; i < l->count; i++) {
-    LISTYPE(l, l->cell[i]->type, LVAL_QEXPR);
+    LASSERT_TYPE("join", l, i, LVAL_QEXPR);
   }
 
   Lval* ql = lval_pop(l, 0);
@@ -473,7 +473,7 @@ Lval* buildin_join(Lenv* e, Lval* l) {
 
 Lval* buildin_cons(Lenv* e, Lval* l) {
   LARGNUM(l, 2);
-  LISTYPE(l, l->cell[1]->type, LVAL_QEXPR);
+  LASSERT_TYPE("cons", l, 1, LVAL_QEXPR);
 
   Lval* a = lval_pop(l, 0);
   Lval* ql = lval_pop(l, 0);
@@ -493,7 +493,7 @@ Lval* buildin_eval(Lenv* e, Lval* l) {
 
 Lval* buildin_len(Lenv* e, Lval* l) {
   LARGNUM(l, 1);
-  LISTYPE(l, l->cell[0]->type, LVAL_QEXPR);
+  LASSERT_TYPE("len", l, 0, LVAL_QEXPR);
 
   Lval* ql = lval_take(l, 0);
   int len = ql->count;
@@ -504,7 +504,7 @@ Lval* buildin_len(Lenv* e, Lval* l) {
 Lval* buildin_init(Lenv* e, Lval* l) {
   LNONEMPTY(l);
   LARGNUM(l, 1);
-  LISTYPE(l, l->cell[0]->type, LVAL_QEXPR);
+  LASSERT_TYPE("init", l, 0, LVAL_QEXPR);
 
   Lval* ql = lval_take(l, 0); // extract the qexpr
   lval_del(lval_pop(ql, ql->count - 1));
