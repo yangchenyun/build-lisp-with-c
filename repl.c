@@ -376,7 +376,19 @@ void lenv_print(Lenv* e) {
 };
 
 Lenv* lenv_copy(Lenv* e) {
-  return lenv_new(); 
+  Lenv* n = lenv_new();
+
+  n->count = e->count;
+  n->syms = malloc(sizeof(char*) * n->count);
+  n->vals = malloc(sizeof(char*) * n->count);
+
+  for (int i = 0; i < n->count; i++) {
+    n->syms[i] = malloc(strlen(e->syms[i]) + 1);
+    strcpy(n->syms[i], e->syms[i]);
+    n->vals[i] = lval_copy(e->vals[i]);
+  }
+
+  return n;
 }
 
 bool lenv_put(Lenv* e, Lval* k, Lval* v, bool status) {
