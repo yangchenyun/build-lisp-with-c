@@ -102,7 +102,7 @@ Lval* lval_copy(Lval* l) {
       v->err = malloc(strlen(l->err) + 1); strcpy(v->err, l->err);
       break;
     case LVAL_SYM:
-      v->err = malloc(strlen(l->sym) + 1); strcpy(v->sym, l->sym);
+      v->sym = malloc(strlen(l->sym) + 1); strcpy(v->sym, l->sym);
       break;
     case LVAL_SEXPR:
     case LVAL_QEXPR:
