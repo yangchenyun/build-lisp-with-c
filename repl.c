@@ -249,7 +249,7 @@ Lval* lval_eval_sexpr(Lenv* e, Lval* v) {
   }
 
   // apply the operation for the rest of list
-  Lval* result = f->buildin(e, v);
+  Lval* result = lval_call(e, f, v);
   lval_del(f);
   return result;
 };
@@ -265,6 +265,18 @@ Lval* lval_eval(Lenv* e, Lval* v) {
   }
 
   return v;
+};
+
+Lval* lval_call(Lenv* e, Lval* f, Lval* l) {
+  if (f->buildin) { return f->buildin(e, l); }
+
+  for (int i = 0; i < l->count; i++) {
+    lenv_put(f->env, f->formals->cell[i], l->cell[i], 0);
+  }
+  lval_del(l);
+  f->env->par = e;
+
+  return buildin_eval(f->env, lval_add(lval_sexp(), lval_copy(f->body)));
 };
 
 // take at the child out of v at index i
