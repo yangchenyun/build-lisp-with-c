@@ -380,12 +380,13 @@ Lenv* lenv_copy(Lenv* e) {
 
   n->count = e->count;
   n->syms = malloc(sizeof(char*) * n->count);
-  n->vals = malloc(sizeof(char*) * n->count);
+  n->vals = malloc(sizeof(Lval*) * n->count);
 
   for (int i = 0; i < n->count; i++) {
     n->syms[i] = malloc(strlen(e->syms[i]) + 1);
     strcpy(n->syms[i], e->syms[i]);
     n->vals[i] = lval_copy(e->vals[i]);
+    n->status[i] = e->status[i];
   }
 
   return n;
