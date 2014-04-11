@@ -243,8 +243,9 @@ Lval* lval_eval_sexpr(Lenv* e, Lval* v) {
 
   Lval* f = lval_pop(v, 0);
   if (f->type != LVAL_FUN) {
+    Lval* err = lval_err("Expect the first element to be a %s, Got %s", ltype_name(LVAL_FUN), ltype_name(f->type));
     lval_del(f); lval_del(v);
-    return lval_err("Expect the first element to be a Function, Got %s", ltype_name(f->type));
+    return err;
   }
 
   // apply the operation for the rest of list
