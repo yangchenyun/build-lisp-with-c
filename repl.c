@@ -386,8 +386,9 @@ void lenv_val_println(Lenv* e, Lval* k) {
 };
 void lenv_print(Lenv* e) {
   FILE* out = DEBUG ? stderr : stdout;
+  if (e->par) { lenv_print(e->par); }
   for (int i = 0; i < e->count; i++) {
-    fprintf(out, "%s => [%s]", e->syms[i], ltype_name(e->vals[i]->type));
+    fprintf(out, "%s => [%s](%d) ", e->syms[i], ltype_name(e->vals[i]->type), e->status[i]);
     lval_print(e->vals[i]);
     fputc('\n', out);
   };
