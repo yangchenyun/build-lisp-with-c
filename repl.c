@@ -440,6 +440,7 @@ void lenv_init_buildins(Lenv* e) {
   /* Variable Functions */
   lenv_add_buildin(e, "def", buildin_def);
   lenv_add_buildin(e, "exit", buildin_exit);
+  lenv_add_buildin(e, "lambda", buildin_lambda);
 }
 
 Lval* buildin_def(Lenv* e, Lval* l) {
@@ -467,6 +468,24 @@ Lval* buildin_def(Lenv* e, Lval* l) {
 Lval* buildin_exit(Lenv* e, Lval* l) {
   LASSERT_TYPE('exit', l, 0, LVAL_NUM);
   exit(l->cell[0]->num);
+};
+
+Lval* buildin_lambda(Lenv* e, Lval* l) {
+  LASSERT_NUM("lambda", l, 2);
+  LASSERT_TYPE("lambda", l, 0, LVAL_QEXPR);
+  LASSERT_TYPE("lambda", l, 1, LVAL_QEXPR);
+
+  for (int i = 0; i < l->cell[0]->count; i++) {
+    LASSERT(l, l->cell[0]->cell[i]->type == LVAL_SYM,
+        "cannot define non-symbol as formal arguments. Expect %s, Got %s",
+        ltype_name(LVAL_SYM), ltype_name(l->cell[0]->cell[i]->type));
+  }
+
+  Lval* formals = lval_pop(l, 0);
+  Lval* body = lval_pop(l, 0);
+  lval_del(l);
+
+  return lval_lambda(formals, body);
 };
 
 Lval* buildin_list(Lenv* e, Lval* l) {

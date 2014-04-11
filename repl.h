@@ -103,6 +103,7 @@ Lval* buildin_mod(Lenv* e, Lval* l);
 
 Lval* buildin_def(Lenv* e, Lval* l);
 Lval* buildin_exit(Lenv* e, Lval* l);
+Lval* buildin_lambda(Lenv* e, Lval* l);
 
 // Evaluation / Data Transformation
 Lval* lval_eval_sexpr(Lenv* e, Lval* v);
