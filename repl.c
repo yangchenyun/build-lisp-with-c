@@ -466,7 +466,7 @@ Lval* buildin_def(Lenv* e, Lval* l) {
 };
 
 Lval* buildin_exit(Lenv* e, Lval* l) {
-  LASSERT_TYPE('exit', l, 0, LVAL_NUM);
+  LASSERT_TYPE("exit", l, 0, LVAL_NUM);
   exit(l->cell[0]->num);
 };
 
