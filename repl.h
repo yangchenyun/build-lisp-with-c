@@ -5,7 +5,7 @@
 #include <assert.h>
 
 enum LTYPE { LVAL_NUM, LVAL_ERR, LVAL_SYM, LVAL_SEXPR, LVAL_QEXPR, LVAL_FUN};
-enum ENVERR { ERR_BUILDIN };
+enum ENVERR { ERR_BUILDIN = 1 };
 #define LASSERT(l, cond, fmt, ...) if (!(cond)) { \
     Lval* err = lval_err(fmt, ##__VA_ARGS__); \
     lval_del(l); \
