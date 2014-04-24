@@ -410,6 +410,7 @@ Lenv* lenv_copy(Lenv* e) {
   n->count = e->count;
   n->syms = malloc(sizeof(char*) * n->count);
   n->vals = malloc(sizeof(Lval*) * n->count);
+  n->status = malloc(sizeof(bool) * n->count);
 
   for (int i = 0; i < n->count; i++) {
     n->syms[i] = malloc(strlen(e->syms[i]) + 1);
@@ -440,9 +441,9 @@ bool lenv_put(Lenv* e, Lval* k, Lval* v, bool status) {
   }
   // new symbols
   e->count++;
-  e->syms = realloc(e->syms, sizeof(char*) * e->count);
   e->vals = realloc(e->vals, sizeof(Lval*) * e->count);
-  e->status = realloc(e->status, sizeof(bool*) * e->count);
+  e->syms = realloc(e->syms, sizeof(char*) * e->count);
+  e->status = realloc(e->status, sizeof(bool) * e->count);
 
   e->status[e->count - 1] = status;
   e->vals[e->count - 1] = lval_copy(v);
