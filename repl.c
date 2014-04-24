@@ -272,13 +272,33 @@ Lval* lval_eval(Lenv* e, Lval* v) {
 Lval* lval_call(Lenv* e, Lval* f, Lval* l) {
   if (f->buildin) { return f->buildin(e, l); }
 
-  for (int i = 0; i < l->count; i++) {
-    lenv_put(f->env, f->formals->cell[i], l->cell[i], 0);
-  }
-  lval_del(l);
-  f->env->par = e;
+  int formaln = f->formals->count;
+  int argn = l->count;
 
-  return buildin_eval(f->env, lval_add(lval_sexp(), lval_copy(f->body)));
+  while(l->count) {
+    if (f->formals->count == 0) {
+      lval_del(l);
+      return lval_err("Too many arguments, expect %s, Got %s", formaln, argn);
+    }
+
+    Lval* sym = lval_pop(f->formals, 0);
+    Lval* val = lval_pop(l, 0);
+
+    lenv_put(f->env, sym, val, 0);
+
+    lval_del(sym);
+    lval_del(val);
+  }
+
+  lval_del(l);
+
+  // partially bound function
+  if (f->formals->count) {
+    return lval_copy(f);
+  } else {
+    f->env->par = e;
+    return buildin_eval(f->env, lval_add(lval_sexp(), lval_copy(f->body)));
+  }
 };
 
 // take at the child out of v at index i
