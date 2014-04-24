@@ -85,6 +85,7 @@ void lenv_val_print(Lenv* e, Lval* k);
 void lenv_val_println(Lenv* e, Lval* k);
 void lenv_print(Lenv* e);
 Lenv* lenv_copy(Lenv* e);
+char* lenv_status_name(int t);
 
 // buildin functions
 Lval* buildin_op(Lenv* e, Lval* l, char* op);

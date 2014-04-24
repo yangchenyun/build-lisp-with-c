@@ -15,6 +15,7 @@ char* ltype_name(int t) {
     default: return "Unknown";
   }
 }
+
 // helper functions to create num / errors
 Lval* lval_num(int num) {
   Lval* v = malloc(sizeof(Lval));
@@ -379,6 +380,14 @@ void lenv_val_print(Lenv* e, Lval* k) {
   lval_print(v);
 };
 
+char* lenv_status_name(int t) {
+  switch (t) {
+    case 1: return "FREEZE";
+    case 0: return "MUTABLE";
+    default: return "Unknown";
+  }
+}
+
 void lenv_val_println(Lenv* e, Lval* k) {
   FILE* out = DEBUG ? stderr : stdout;
   lenv_val_print(e, k);
@@ -388,7 +397,7 @@ void lenv_print(Lenv* e) {
   FILE* out = DEBUG ? stderr : stdout;
   if (e->par) { lenv_print(e->par); }
   for (int i = 0; i < e->count; i++) {
-    fprintf(out, "%s => [%s](%d) ", e->syms[i], ltype_name(e->vals[i]->type), e->status[i]);
+    fprintf(out, "%s => [%s](%s) ", e->syms[i], ltype_name(e->vals[i]->type), lenv_status_name(e->status[i]));
     lval_print(e->vals[i]);
     fputc('\n', out);
   };
