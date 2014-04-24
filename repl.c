@@ -90,7 +90,7 @@ Lval* lval_copy(Lval* l) {
       v->num = l->num;
       break;
     case LVAL_FUN:
-      if (v->buildin) {
+      if (l->buildin) {
         v->buildin = l->buildin;
       } else {
         v->buildin = NULL;
@@ -121,6 +121,7 @@ Lval* lval_copy(Lval* l) {
 void lval_del(Lval* v) {
   switch (v->type) {
     case LVAL_NUM:
+      break;
     case LVAL_FUN:
       if (!v->buildin) {
         lenv_del(v->env);
