@@ -719,7 +719,7 @@ int main(int argc, const char *argv[])
   mpc_result_t r;
 
   /* Print Version and Exit Information */
-  puts("Lispy Version 0.0.5");
+  puts("Lispy Version 0.0.6");
   puts("Press Ctrl+c to Exit\n");
 
   Lenv* e = lenv_new();
