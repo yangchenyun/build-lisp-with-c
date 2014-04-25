@@ -187,6 +187,30 @@ void lval_println(Lval* v) {
   fputc('\n', out);
 }
 
+int lval_eq(Lval* v, Lval* w) {
+  if (v->type != w->type) { return 0; }
+  switch (v->type) {
+    case LVAL_NUM: return (v->num == w->num);
+    case LVAL_ERR: return strcmp(v->err, w->err);
+    case LVAL_SYM: return strcmp(v->sym, w->sym);
+    case LVAL_FUN:
+      if (v->buildin || w->buildin) {
+        return (v->buildin == w->buildin);
+      } else {
+        return lval_eq(v->formals, w->formals) && lval_eq(v->body, w->body);
+      }
+    case LVAL_SEXPR:
+    case LVAL_QEXPR:
+      if (v->count != w->count) { return 0; }
+      for (int i = 0; i < v->count; i++) {
+        if (!lval_eq(v->cell[i], w->cell[i])) { return 0; }
+        return 1;
+      }
+      break;
+  }
+  return 0; // default case
+}
+
 // add x to the sexp or qexp
 Lval* lval_add(Lval* v, Lval* x) {
   assert(v->type == LVAL_SEXPR || v->type == LVAL_QEXPR);
@@ -510,6 +534,8 @@ void lenv_init_buildins(Lenv* e) {
   lenv_add_buildin(e, "<=", buildin_lteq);
   lenv_add_buildin(e, ">", buildin_gt);
   lenv_add_buildin(e, ">=", buildin_gteq);
+  lenv_add_buildin(e, "==", buildin_eq);
+  lenv_add_buildin(e, "!=", buildin_neq);
 }
 
 Lval* buildin_def(Lenv* e, Lval* l) { return buildin_var(e, l, "def"); }
@@ -723,6 +749,22 @@ Lval* buildin_lt(Lenv* e, Lval* l)   { return buildin_ord(e, l, "<"); }
 Lval* buildin_lteq(Lenv* e, Lval* l) { return buildin_ord(e, l, "<="); }
 Lval* buildin_gt(Lenv* e, Lval* l)   { return buildin_ord(e, l, ">"); }
 Lval* buildin_gteq(Lenv* e, Lval* l) { return buildin_ord(e, l, ">="); }
+
+Lval* buildin_cmp(Lenv* e, Lval* l, char* op) {
+  LASSERT_NUM(op, l, 2);
+
+  int r;
+
+  if (strcmp(op, "==") == 0)  { r =  lval_eq(l->cell[0], l->cell[1]); }
+  if (strcmp(op, "!=") == 0)  { r = !lval_eq(l->cell[0], l->cell[1]); }
+
+  lval_del(l);
+
+  return lval_num(r);
+}
+
+Lval* buildin_eq(Lenv* e, Lval* l)   { return buildin_cmp(e, l, "=="); }
+Lval* buildin_neq(Lenv* e, Lval* l)  { return buildin_cmp(e, l, "!="); }
 
 int main(int argc, const char *argv[])
 {

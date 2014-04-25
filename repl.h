@@ -66,6 +66,9 @@ Lval* lval_take(Lval* v, int i); // take elements and leave out the rest
 Lval* lval_join(Lval* v, Lval* u);
 Lval* lval_insert(Lval* v, Lval* a, int i);
 
+// Comparison
+int lval_eq(Lval* v, Lval* w);
+
 struct Lenv {
   int count;
   Lenv* par;
@@ -115,6 +118,10 @@ Lval* buildin_lt(Lenv* e, Lval* l);
 Lval* buildin_lteq(Lenv* e, Lval* l);
 Lval* buildin_gt(Lenv* e, Lval* l);
 Lval* buildin_gteq(Lenv* e, Lval* l);
+
+Lval* buildin_cmp(Lenv* e, Lval* l, char* op);
+Lval* buildin_eq(Lenv* e, Lval* l);
+Lval* buildin_neq(Lenv* e, Lval* l);
 
 // Evaluation / Data Transformation
 Lval* lval_eval_sexpr(Lenv* e, Lval* v);
