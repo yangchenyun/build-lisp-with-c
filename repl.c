@@ -481,12 +481,6 @@ void lenv_add_buildin(Lenv* e, char* name, Lbuildin func) {
   lval_del(k); lval_del(v);
 }
 
-Lval* buildin_add(Lenv* e, Lval* l) { return buildin_op(e, l, "+"); }
-Lval* buildin_sub(Lenv* e, Lval* l) { return buildin_op(e, l, "-"); }
-Lval* buildin_mul(Lenv* e, Lval* l) { return buildin_op(e, l, "*"); }
-Lval* buildin_div(Lenv* e, Lval* l) { return buildin_op(e, l, "/"); }
-Lval* buildin_mod(Lenv* e, Lval* l) { return buildin_op(e, l, "%"); }
-
 void lenv_init_buildins(Lenv* e) {
   /* List Functions */
   lenv_add_buildin(e, "list", buildin_list);
@@ -510,6 +504,12 @@ void lenv_init_buildins(Lenv* e) {
   lenv_add_buildin(e, "=", buildin_put);
   lenv_add_buildin(e, "exit", buildin_exit);
   lenv_add_buildin(e, "lambda", buildin_lambda);
+
+  /* Comparison Functions */
+  lenv_add_buildin(e, "<", buildin_lt);
+  lenv_add_buildin(e, "<=", buildin_lteq);
+  lenv_add_buildin(e, ">", buildin_gt);
+  lenv_add_buildin(e, ">=", buildin_gteq);
 }
 
 Lval* buildin_def(Lenv* e, Lval* l) { return buildin_var(e, l, "def"); }
@@ -695,6 +695,34 @@ Lval* buildin_op(Lenv* e, Lval* l, char* op) {
   lval_del(l);
   return x;
 };
+
+Lval* buildin_add(Lenv* e, Lval* l) { return buildin_op(e, l, "+"); }
+Lval* buildin_sub(Lenv* e, Lval* l) { return buildin_op(e, l, "-"); }
+Lval* buildin_mul(Lenv* e, Lval* l) { return buildin_op(e, l, "*"); }
+Lval* buildin_div(Lenv* e, Lval* l) { return buildin_op(e, l, "/"); }
+Lval* buildin_mod(Lenv* e, Lval* l) { return buildin_op(e, l, "%"); }
+
+Lval* buildin_ord(Lenv* e, Lval* l, char* op) {
+  LASSERT_NUM(op, l, 2);
+  LASSERT_TYPE(op, l, 0, LVAL_NUM);
+  LASSERT_TYPE(op, l, 1, LVAL_NUM);
+
+  int r;
+
+  if (strcmp(op, "<") == 0)  { r = (l->cell[0]->num < l->cell[1]->num); }
+  if (strcmp(op, "<=") == 0) { r = (l->cell[0]->num <= l->cell[1]->num); }
+  if (strcmp(op, ">") == 0)  { r = (l->cell[0]->num > l->cell[1]->num); }
+  if (strcmp(op, ">=") == 0) { r = (l->cell[0]->num >= l->cell[1]->num); }
+
+  lval_del(l);
+
+  return lval_num(r);
+}
+
+Lval* buildin_lt(Lenv* e, Lval* l)   { return buildin_ord(e, l, "<"); }
+Lval* buildin_lteq(Lenv* e, Lval* l) { return buildin_ord(e, l, "<="); }
+Lval* buildin_gt(Lenv* e, Lval* l)   { return buildin_ord(e, l, ">"); }
+Lval* buildin_gteq(Lenv* e, Lval* l) { return buildin_ord(e, l, ">="); }
 
 int main(int argc, const char *argv[])
 {

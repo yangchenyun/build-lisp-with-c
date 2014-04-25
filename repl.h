@@ -110,6 +110,12 @@ Lval* buildin_put(Lenv* e, Lval* l);
 Lval* buildin_exit(Lenv* e, Lval* l);
 Lval* buildin_lambda(Lenv* e, Lval* l);
 
+Lval* buildin_ord(Lenv* e, Lval* l, char* op);
+Lval* buildin_lt(Lenv* e, Lval* l);
+Lval* buildin_lteq(Lenv* e, Lval* l);
+Lval* buildin_gt(Lenv* e, Lval* l);
+Lval* buildin_gteq(Lenv* e, Lval* l);
+
 // Evaluation / Data Transformation
 Lval* lval_eval_sexpr(Lenv* e, Lval* v);
 Lval* lval_eval(Lenv* e, Lval* v);
