@@ -8,6 +8,7 @@ char* ltype_name(int t) {
   switch(t) {
     case LVAL_FUN: return "Function";
     case LVAL_NUM: return "Number";
+    case LVAL_BOOL: return "Boolean";
     case LVAL_ERR: return "Error";
     case LVAL_SYM: return "Symbol";
     case LVAL_SEXPR: return "S-Expression";
@@ -21,6 +22,14 @@ Lval* lval_num(int num) {
   Lval* v = malloc(sizeof(Lval));
   v->type = LVAL_NUM;
   v->num = num;
+  return v;
+};
+
+
+Lval* lval_bool(bool b) {
+  Lval* v = malloc(sizeof(Lval));
+  v->type = LVAL_BOOL;
+  v->num = b;
   return v;
 };
 
@@ -87,6 +96,7 @@ Lval* lval_copy(Lval* l) {
 
   switch (v->type) {
     case LVAL_NUM:
+    case LVAL_BOOL:
       v->num = l->num;
       break;
     case LVAL_FUN:
@@ -121,6 +131,7 @@ Lval* lval_copy(Lval* l) {
 void lval_del(Lval* v) {
   switch (v->type) {
     case LVAL_NUM:
+    case LVAL_BOOL:
       break;
     case LVAL_FUN:
       if (!v->buildin) {
@@ -163,6 +174,7 @@ void lval_print(Lval* v) {
   FILE* out = DEBUG ? stderr : stdout;
   switch (v->type) {
     case LVAL_NUM: fprintf(out, "%li", v->num); break;
+    case LVAL_BOOL: fprintf(out, "%s", v->num ? "<true>" : "<false>"); break;
     case LVAL_ERR: fprintf(out, "ERROR: %s", v->err); break;
     case LVAL_SYM: fprintf(out, "%s", v->sym); break;
     case LVAL_SEXPR: lval_expr_print(v, '(', ')'); break;
@@ -190,7 +202,9 @@ void lval_println(Lval* v) {
 int lval_eq(Lval* v, Lval* w) {
   if (v->type != w->type) { return 0; }
   switch (v->type) {
-    case LVAL_NUM: return (v->num == w->num);
+    case LVAL_NUM:
+    case LVAL_BOOL:
+      return (v->num == w->num);
     case LVAL_ERR: return strcmp(v->err, w->err);
     case LVAL_SYM: return strcmp(v->sym, w->sym);
     case LVAL_FUN:
@@ -505,6 +519,13 @@ void lenv_add_buildin(Lenv* e, char* name, Lbuildin func) {
   lval_del(k); lval_del(v);
 }
 
+void lenv_add_boolean(Lenv* e, char* name, bool b) {
+  Lval* k = lval_sym(name);
+  Lval* v = lval_bool(b);
+  lenv_put(e, k, v, true);
+  lval_del(k); lval_del(v);
+}
+
 void lenv_init_buildins(Lenv* e) {
   /* List Functions */
   lenv_add_buildin(e, "list", buildin_list);
@@ -544,6 +565,10 @@ void lenv_init_buildins(Lenv* e) {
   lenv_add_buildin(e, "||", buildin_or);
   lenv_add_buildin(e, "&&", buildin_and);
   lenv_add_buildin(e, "!",  buildin_not);
+
+  /* Boolean Values */
+  lenv_add_boolean(e, "true", 1);
+  lenv_add_boolean(e, "false", 0);
 }
 
 Lval* buildin_def(Lenv* e, Lval* l) { return buildin_var(e, l, "def"); }
@@ -775,9 +800,13 @@ Lval* buildin_eq(Lenv* e, Lval* l)   { return buildin_cmp(e, l, "=="); }
 Lval* buildin_neq(Lenv* e, Lval* l)  { return buildin_cmp(e, l, "!="); }
 
 Lval* buildin_if(Lenv* e, Lval* l)  {
-  LASSERT_TYPE("if", l, 0, LVAL_NUM);
+  LASSERT(l, l->cell[0]->type == LVAL_NUM || l->cell[0]->type == LVAL_BOOL,
+      "Function %s is passed in wrong type of arguments at %d. Expect %s or %s, Got %s",
+      "if", 0,
+      ltype_name(LVAL_NUM), ltype_name(LVAL_BOOL),
+      ltype_name(l->cell[0]->type));
   LASSERT_TYPE("if", l, 1, LVAL_QEXPR);
-  LASSERT_TYPE("if", l, 2, LVAL_QEXPR); // might change it to be optional
+  LASSERT_TYPE("if", l, 2, LVAL_QEXPR);
 
   Lval* r;
   if (l->cell[0]->num) {

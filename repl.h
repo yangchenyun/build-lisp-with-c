@@ -4,7 +4,7 @@
 #include <math.h>
 #include <assert.h>
 
-enum LTYPE { LVAL_NUM, LVAL_ERR, LVAL_SYM, LVAL_SEXPR, LVAL_QEXPR, LVAL_FUN};
+enum LTYPE { LVAL_NUM, LVAL_ERR, LVAL_SYM, LVAL_SEXPR, LVAL_QEXPR, LVAL_FUN, LVAL_BOOL};
 enum ENVERR { ERR_BUILDIN = 1 };
 #define LASSERT(l, cond, fmt, ...) if (!(cond)) { \
     Lval* err = lval_err(fmt, ##__VA_ARGS__); \
@@ -43,6 +43,7 @@ struct Lval {
 
 // Construction methods
 Lval* lval_num(int num);
+Lval* lval_bool(bool b);
 Lval* lval_err(char* fmt, ...);
 Lval* lval_sym(char* s);
 Lval* lval_sexp(void);
@@ -83,6 +84,7 @@ Lval* lenv_get(Lenv* e, Lval* k);
 bool lenv_put(Lenv* e, Lval* k, Lval* v, bool status); // 1 = freeze, 0 = mutable
 bool lenv_def(Lenv* e, Lval* k, Lval* v, bool status); // 1 = freeze, 0 = mutable
 void lenv_add_buildin(Lenv* e, char* name, Lbuildin func);
+void lenv_add_boolean(Lenv* e, char* name, bool b);
 void lenv_init_buildins(Lenv* e);
 void lenv_val_print(Lenv* e, Lval* k);
 void lenv_val_println(Lenv* e, Lval* k);
