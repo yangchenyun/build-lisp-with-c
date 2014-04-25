@@ -565,6 +565,9 @@ void lenv_init_buildins(Lenv* e) {
   lenv_add_buildin(e, "||", buildin_or);
   lenv_add_buildin(e, "&&", buildin_and);
   lenv_add_buildin(e, "!",  buildin_not);
+  lenv_add_buildin(e, "or", buildin_or);
+  lenv_add_buildin(e, "and", buildin_and);
+  lenv_add_buildin(e, "not",  buildin_not);
 
   /* Boolean Values */
   lenv_add_boolean(e, "true", 1);
