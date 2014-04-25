@@ -123,6 +123,8 @@ Lval* buildin_cmp(Lenv* e, Lval* l, char* op);
 Lval* buildin_eq(Lenv* e, Lval* l);
 Lval* buildin_neq(Lenv* e, Lval* l);
 
+Lval* buildin_if(Lenv* e, Lval* l);
+
 // Evaluation / Data Transformation
 Lval* lval_eval_sexpr(Lenv* e, Lval* v);
 Lval* lval_eval(Lenv* e, Lval* v);

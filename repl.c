@@ -536,6 +536,9 @@ void lenv_init_buildins(Lenv* e) {
   lenv_add_buildin(e, ">=", buildin_gteq);
   lenv_add_buildin(e, "==", buildin_eq);
   lenv_add_buildin(e, "!=", buildin_neq);
+
+  /* Conditionals */
+  lenv_add_buildin(e, "if", buildin_if);
 }
 
 Lval* buildin_def(Lenv* e, Lval* l) { return buildin_var(e, l, "def"); }
@@ -765,6 +768,21 @@ Lval* buildin_cmp(Lenv* e, Lval* l, char* op) {
 
 Lval* buildin_eq(Lenv* e, Lval* l)   { return buildin_cmp(e, l, "=="); }
 Lval* buildin_neq(Lenv* e, Lval* l)  { return buildin_cmp(e, l, "!="); }
+
+Lval* buildin_if(Lenv* e, Lval* l)  {
+  LASSERT_TYPE("if", l, 0, LVAL_NUM);
+  LASSERT_TYPE("if", l, 1, LVAL_QEXPR);
+  LASSERT_TYPE("if", l, 2, LVAL_QEXPR); // might change it to be optional
+
+  Lval* r;
+  if (l->cell[0]->num) {
+    r = buildin_eval(e, lval_add(lval_sexp(), lval_pop(l, 1)));
+  } else {
+    r = buildin_eval(e, lval_add(lval_sexp(), lval_pop(l, 2)));
+  }
+  lval_del(l);
+  return r;
+}
 
 int main(int argc, const char *argv[])
 {
