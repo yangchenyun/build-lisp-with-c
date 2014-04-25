@@ -539,6 +539,11 @@ void lenv_init_buildins(Lenv* e) {
 
   /* Conditionals */
   lenv_add_buildin(e, "if", buildin_if);
+
+  /* Logic Operators */
+  lenv_add_buildin(e, "||", buildin_or);
+  lenv_add_buildin(e, "&&", buildin_and);
+  lenv_add_buildin(e, "!",  buildin_not);
 }
 
 Lval* buildin_def(Lenv* e, Lval* l) { return buildin_var(e, l, "def"); }
@@ -784,6 +789,33 @@ Lval* buildin_if(Lenv* e, Lval* l)  {
   return r;
 }
 
+Lval* buildin_logic(Lenv* e, Lval* l, char* op) {
+  LASSERT_NUM(op, l, 2);
+  LASSERT_TYPE(op, l, 0, LVAL_NUM);
+  LASSERT_TYPE(op, l, 1, LVAL_NUM);
+
+  int r;
+
+  if (strcmp(op, "||") == 0)  { r = (l->cell[0]->num || l->cell[1]->num); }
+  if (strcmp(op, "&&") == 0)  { r = (l->cell[0]->num && l->cell[1]->num); }
+
+  lval_del(l);
+
+  return lval_num(r);
+}
+
+Lval* buildin_or(Lenv* e, Lval* l)   { return buildin_logic(e, l, "||"); }
+Lval* buildin_and(Lenv* e, Lval* l)  { return buildin_logic(e, l, "&&"); }
+
+Lval* buildin_not(Lenv* e, Lval* l)  {
+  LASSERT_NUM("!", l, 1);
+  LASSERT_TYPE("!", l, 0, LVAL_NUM);
+
+  int v = l->cell[0]->num;
+  lval_del(l);
+
+  return lval_num(!v);
+}
 int main(int argc, const char *argv[])
 {
   mpc_parser_t *Prog  = mpc_new("program");
@@ -795,7 +827,7 @@ int main(int argc, const char *argv[])
 
   mpca_lang(MPC_LANG_DEFAULT,
       " \
-      symbol  : /[a-zA-Z0-9_+\\-*\\/%\\\\=<>!&]+/; \
+      symbol  : /[a-zA-Z0-9_+\\-*\\/%\\\\=<>!&\\|]+/; \
       number  : /-?[0-9]+(\\.[0-9]+)?/; \
       expr    : <number> | <symbol> | <sexpr> | <qexpr> ;\
       sexpr   : '(' <expr>* ')';\

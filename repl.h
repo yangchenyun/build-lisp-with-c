@@ -125,6 +125,11 @@ Lval* buildin_neq(Lenv* e, Lval* l);
 
 Lval* buildin_if(Lenv* e, Lval* l);
 
+Lval* buildin_logic(Lenv* e, Lval* l, char* op);
+Lval* buildin_or(Lenv* e, Lval* l);
+Lval* buildin_and(Lenv* e, Lval* l);
+Lval* buildin_not(Lenv* e, Lval* l);
+
 // Evaluation / Data Transformation
 Lval* lval_eval_sexpr(Lenv* e, Lval* v);
 Lval* lval_eval(Lenv* e, Lval* v);
